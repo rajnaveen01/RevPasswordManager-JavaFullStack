@@ -56,7 +56,7 @@ The application is built on a **Hybrid Layered Monolithic Architecture**, utiliz
 
 ### 📌 Architecture Diagram
 
-![System Architecture Diagram](docs/images/Architecture Diagram.png)
+![System Architecture Diagram](docs/images/Architecture%20Diagram.png)
 
 **Layer Responsibilities:**
 * **Controller Layer:** Intercepts HTTP requests, serves Thymeleaf templates, and routes JSON data payloads via REST APIs.
@@ -73,7 +73,7 @@ The system utilizes a highly normalized relational database design with secure c
 
 ### 🗄️ Entity Relationship Diagram (ERD)
 
-![ER Diagram](docs/images/ER Diagram.png)
+![ER Diagram](docs/images/ER%20Diagram.png)
 
 **Core Entities:**
 * **Users:** Stores user profiles, 2FA preferences, and the BCrypt Master Password hash.
@@ -93,16 +93,17 @@ The system utilizes a highly normalized relational database design with secure c
 * **MySQL 8** installed and running.
 * **Maven** installed (or use the embedded IDE wrapper).
 
+Markdown
 ### Installation Steps
 
 1. **Clone the Repository:**
    ```bash
-   git clone [https://github.com/rajnaveen01/RevPasswordManager-JavaFullStack.git](https://github.com/rajnaveen01/RevPasswordManager-JavaFullStack.git)
+   git clone https://github.com/rajnaveen01/RevPasswordManager-JavaFullStack.git
    cd RevPasswordManager-JavaFullStack
-Configure the Database & Email (application.properties):
+   
+2. Configure the Database & Email (application.properties):
 Open src/main/resources/application.properties and update your credentials:
 
-Properties
 # Database Configuration
 spring.datasource.url=jdbc:mysql://localhost:3306/finalrev
 spring.datasource.username=root
@@ -111,18 +112,19 @@ spring.datasource.password=YOUR_MYSQL_PASSWORD
 # Email Configuration (For 2FA)
 spring.mail.username=YOUR_EMAIL@gmail.com
 spring.mail.password=YOUR_GOOGLE_APP_PASSWORD
-(Note: You must create the finalrev schema in MySQL before running).
 
-Build the Project:
+(Note: You must create the finalrev schema in MySQL before running)
 
-Bash
-mvn clean install
-Run the Application:
+3. Build the Project:
+   ```bash
+   mvn clean install
+
+4. Run the Application:
 Run RevPasswordmanagerApplication.java from your IDE, or use the terminal:
+   ```bash
+   mvn spring-boot:run
 
-Bash
-mvn spring-boot:run
-Access the Web App:
+5. Access the Web App:
 Open your browser and navigate to: http://localhost:9092
 
 📸 Usage Workflow
