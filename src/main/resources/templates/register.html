@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Create Account — RevPasswordManager</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+:root{
+  --bg:#f0f4f8;
+  --bg2:#e8eef5;
+  --bg3:#dde6f0;
+  --white:#ffffff;
+  --ink:#0f172a;
+  --ink2:#334155;
+  --ink3:#64748b;
+  --ink4:#94a3b8;
+  --border:#e2e8f0;
+  --border2:#cbd5e1;
+  --blue:#2563eb;
+  --blue-lt:#3b82f6;
+  --blue-dim:rgba(37,99,235,0.08);
+  --blue-glow:rgba(37,99,235,0.18);
+  --danger:#dc2626;
+  --danger-dim:rgba(220,38,38,0.08);
+  --success:#059669;
+  --success-dim:rgba(5,150,105,0.08);
+  --font:'Plus Jakarta Sans',system-ui,sans-serif;
+  --r:8px;--r-lg:14px;
+}
+body{font-family:var(--font);background:var(--bg);color:var(--ink);min-height:100vh;-webkit-font-smoothing:antialiased;}
+a{text-decoration:none;color:inherit;}
+
+/* NAV */
+nav{
+  height:60px;display:flex;align-items:center;justify-content:space-between;
+  padding:0 52px;background:rgba(240,244,248,0.93);
+  backdrop-filter:blur(20px);border-bottom:1px solid var(--border);
+  box-shadow:0 1px 3px rgba(0,0,0,0.04);
+  position:sticky;top:0;z-index:100;
+}
+.nav-logo{display:flex;align-items:center;gap:10px;font-size:0.95rem;font-weight:800;color:var(--ink);letter-spacing:-0.02em;}
+.logo-icon{
+  width:30px;height:30px;border-radius:8px;
+  background:linear-gradient(135deg,var(--blue),#7c3aed);
+  display:grid;place-items:center;font-size:0.8rem;
+  box-shadow:0 2px 10px rgba(37,99,235,0.3);
+}
+.nav-right{display:flex;align-items:center;gap:6px;font-size:0.83rem;color:var(--ink3);}
+.nav-right a{
+  font-weight:600;color:var(--blue);
+  padding:6px 14px;border-radius:var(--r);
+  border:1px solid rgba(37,99,235,0.25);transition:all .15s;
+}
+.nav-right a:hover{background:var(--blue-dim);}
+
+/* LAYOUT */
+.page{display:flex;justify-content:center;min-height:calc(100vh - 60px);}
+
+/* LEFT PANEL */
+.page-left{
+  background:linear-gradient(160deg,#e4edf8 0%,#dbe6f2 100%);
+  border-right:1px solid var(--border);
+  display:flex;flex-direction:column;justify-content:center;
+  padding:56px 44px;
+  position:sticky;top:60px;height:calc(100vh - 60px);overflow:hidden;
+}
+/* decorative circles */
+.page-left::before{
+  content:'';position:absolute;top:-80px;right:-80px;
+  width:260px;height:260px;border-radius:50%;
+  background:radial-gradient(circle,rgba(37,99,235,0.1) 0%,transparent 70%);
+  pointer-events:none;
+}
+.page-left::after{
+  content:'';position:absolute;bottom:-60px;left:-40px;
+  width:200px;height:200px;border-radius:50%;
+  background:radial-gradient(circle,rgba(124,58,237,0.08) 0%,transparent 70%);
+  pointer-events:none;
+}
+.left-badge{
+  display:inline-flex;align-items:center;gap:7px;
+  padding:5px 12px;border-radius:99px;
+  background:rgba(37,99,235,0.1);border:1px solid rgba(37,99,235,0.2);
+  font-size:0.69rem;font-weight:700;letter-spacing:0.07em;text-transform:uppercase;
+  color:var(--blue);margin-bottom:22px;width:fit-content;position:relative;z-index:1;
+}
+.badge-dot{
+  width:5px;height:5px;border-radius:50%;
+  background:#059669;box-shadow:0 0 6px #059669;
+  animation:blink 2s ease-in-out infinite;
+}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0.2}}
+.left-h{
+  font-size:1.85rem;font-weight:800;letter-spacing:-0.04em;
+  line-height:1.15;color:var(--ink);margin-bottom:12px;
+  position:relative;z-index:1;
+}
+.left-h span{
+  background:linear-gradient(135deg,var(--blue),#7c3aed);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+.left-p{font-size:0.87rem;color:var(--ink3);line-height:1.72;margin-bottom:32px;max-width:280px;position:relative;z-index:1;}
+.left-features{display:flex;flex-direction:column;gap:10px;position:relative;z-index:1;}
+.left-feat{
+  display:flex;align-items:center;gap:11px;
+  padding:12px 14px;background:var(--white);
+  border:1px solid var(--border);border-radius:var(--r-lg);
+  box-shadow:0 1px 4px rgba(0,0,0,0.04);transition:box-shadow .2s;
+}
+.left-feat:hover{box-shadow:0 4px 14px rgba(0,0,0,0.07);}
+.left-feat-ico{
+  width:34px;height:34px;border-radius:8px;
+  background:var(--blue-dim);border:1px solid rgba(37,99,235,0.12);
+  display:grid;place-items:center;font-size:0.88rem;flex-shrink:0;
+}
+.left-feat-text h4{font-size:0.81rem;font-weight:700;color:var(--ink);margin-bottom:1px;}
+.left-feat-text p{font-size:0.72rem;color:var(--ink3);}
+
+/* FORM PANEL */
+.page-center{padding:44px 24px;width:100%;display:flex;justify-content:center;}
+.form-panel{max-width:560px;width:100%;}
+.form-head{margin-bottom:26px;}
+.form-head h2{font-size:1.4rem;font-weight:800;letter-spacing:-0.03em;color:var(--ink);margin-bottom:4px;}
+.form-head p{font-size:0.84rem;color:var(--ink3);}
+
+/* Progress */
+.progress{display:flex;align-items:center;margin-bottom:26px;}
+.prog-step{display:flex;align-items:center;gap:7px;}
+.prog-num{
+  width:26px;height:26px;border-radius:50%;
+  border:2px solid var(--border2);
+  display:grid;place-items:center;
+  font-size:0.7rem;font-weight:700;color:var(--ink4);
+  flex-shrink:0;transition:all .3s;background:var(--white);
+}
+.prog-num.active{border-color:var(--blue);color:var(--blue);background:var(--blue-dim);}
+.prog-num.done{border-color:var(--blue);background:var(--blue);color:#fff;}
+.prog-label{font-size:0.72rem;font-weight:600;color:var(--ink4);transition:color .3s;}
+.prog-label.active{color:var(--blue);}
+.prog-label.done{color:var(--ink2);}
+.prog-line{flex:1;height:1px;background:var(--border);margin:0 10px;transition:background .3s;}
+.prog-line.done{background:var(--blue);}
+
+/* Messages */
+.msg-error{
+  display:none;background:var(--danger-dim);
+  border:1px solid rgba(220,38,38,0.2);border-radius:var(--r);
+  padding:11px 14px;color:var(--danger);font-size:0.82rem;
+  margin-bottom:14px;animation:shake .35s ease;
+}
+.msg-success{
+  display:none;background:var(--success-dim);
+  border:1px solid rgba(5,150,105,0.2);border-radius:var(--r);
+  padding:14px;color:var(--success);font-size:0.85rem;
+  text-align:center;margin-bottom:14px;font-weight:600;
+}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+
+/* Cards */
+.card{
+  background:var(--white);border:1px solid var(--border);
+  border-radius:var(--r-lg);padding:20px 18px;
+  margin-bottom:12px;box-shadow:0 1px 4px rgba(0,0,0,0.04);
+}
+.card-title{
+  display:flex;align-items:center;gap:8px;
+  font-size:0.82rem;font-weight:700;color:var(--ink2);
+  margin-bottom:16px;padding-bottom:12px;
+  border-bottom:1px solid var(--border);
+}
+.card-ico{
+  width:28px;height:28px;border-radius:7px;
+  background:var(--blue-dim);border:1px solid rgba(37,99,235,0.12);
+  display:grid;place-items:center;font-size:0.78rem;
+}
+
+/* Fields */
+.field{margin-bottom:13px;}
+.field:last-child{margin-bottom:0;}
+.field label{display:block;font-size:0.72rem;font-weight:600;letter-spacing:0.04em;color:var(--ink3);margin-bottom:5px;}
+.field label .req{color:var(--danger);margin-left:2px;}
+.field label .opt{font-weight:400;color:var(--ink4);}
+.input-wrap{position:relative;}
+.input-ico{position:absolute;left:11px;top:50%;transform:translateY(-50%);font-size:0.84rem;pointer-events:none;z-index:1;}
+input,select{
+  width:100%;padding:10px 12px 10px 36px;
+  background:var(--bg);border:1px solid var(--border2);
+  border-radius:var(--r);color:var(--ink);
+  font-family:var(--font);font-size:0.875rem;
+  outline:none;transition:all .2s;appearance:none;
+}
+input:focus,select:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(37,99,235,0.1);background:var(--white);}
+input::placeholder{color:var(--ink4);}
+select option{background:var(--white);color:var(--ink);}
+input.invalid,select.invalid{border-color:var(--danger)!important;box-shadow:0 0 0 3px var(--danger-dim)!important;}
+.eye-btn{
+  position:absolute;right:10px;top:50%;transform:translateY(-50%);
+  background:none;border:none;cursor:pointer;
+  color:var(--ink4);font-size:0.85rem;padding:4px;transition:color .15s;z-index:2;
+}
+.eye-btn:hover{color:var(--blue);}
+.err-msg{color:var(--danger);font-size:0.74rem;margin-top:4px;display:none;font-weight:500;}
+
+/* Strength */
+.strength-wrap{margin-top:7px;display:none;}
+.strength-track{height:4px;background:var(--bg3);border-radius:99px;overflow:hidden;}
+.strength-fill{height:100%;border-radius:99px;transition:width .4s,background .4s;width:0;}
+.strength-label{font-size:0.72rem;margin-top:4px;font-weight:600;}
+
+/* Two col */
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+@media(max-width:540px){.two-col{grid-template-columns:1fr;}}
+
+/* QA block */
+.qa-block{background:var(--bg);border:1px solid var(--border);border-radius:var(--r);padding:13px;margin-bottom:10px;}
+.qa-block:last-child{margin-bottom:0;}
+.qa-num{font-size:0.68rem;font-weight:700;color:var(--blue);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:9px;}
+
+/* Submit */
+.btn-submit{
+  width:100%;padding:13px;
+  background:linear-gradient(135deg,var(--blue),#7c3aed);
+  border:none;border-radius:var(--r);
+  color:#fff;font-family:var(--font);font-size:0.9rem;font-weight:700;
+  cursor:pointer;transition:all .2s;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  box-shadow:0 4px 16px rgba(37,99,235,0.3);margin-top:4px;
+}
+.btn-submit:hover{opacity:0.92;transform:translateY(-1px);box-shadow:0 8px 24px rgba(37,99,235,0.4);}
+.btn-submit:disabled{opacity:0.6;cursor:not-allowed;transform:none;}
+.spinner{width:14px;height:14px;border:2px solid rgba(255,255,255,0.3);border-top-color:#fff;border-radius:50%;animation:spin .65s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.sign-in-link{text-align:center;margin-top:16px;font-size:0.83rem;color:var(--ink3);}
+.sign-in-link a{color:var(--blue);font-weight:600;}
+.sign-in-link a:hover{text-decoration:underline;}
+
+@media(max-width:860px){
+  .page{grid-template-columns:1fr;}
+  .page-left{display:none;}
+  .page-center{padding:28px 20px;}
+  nav{padding:0 20px;}
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="/" class="nav-logo">
+    <div class="logo-icon">🔐</div>
+    RevPasswordManager
+  </a>
+  <div class="nav-right">
+    Already have an account? <a href="/login">Sign in</a>
+  </div>
+</nav>
+
+<div class="page">
+
+
+
+  <!-- FORM -->
+  <div class="page-center">
+    <div class="form-panel">
+
+      <div class="form-head">
+        <h2>Create your account</h2>
+        <p>Set up your secure vault in under a minute</p>
+      </div>
+
+      <div class="progress">
+        <div class="prog-step">
+          <div class="prog-num active" id="pn1">1</div>
+          <span class="prog-label active" id="pl1">Account</span>
+        </div>
+        <div class="prog-line" id="pline1"></div>
+        <div class="prog-step">
+          <div class="prog-num" id="pn2">2</div>
+          <span class="prog-label" id="pl2">Security</span>
+        </div>
+        <div class="prog-line" id="pline2"></div>
+        <div class="prog-step">
+          <div class="prog-num" id="pn3">✓</div>
+          <span class="prog-label" id="pl3">Done</span>
+        </div>
+      </div>
+
+      <div class="msg-error" id="globalError"></div>
+      <div class="msg-success" id="successMsg">✅ Account created! Redirecting to sign in...</div>
+
+      <form id="registerForm" novalidate>
+
+        <!-- Card 1 -->
+        <div class="card">
+          <div class="card-title">
+            <div class="card-ico">👤</div>
+            Account Information
+          </div>
+          <div class="two-col">
+            <div class="field">
+              <label>Username <span class="req">*</span></label>
+              <div class="input-wrap">
+                <span class="input-ico">@</span>
+                <input id="username" type="text" placeholder="john_doe" maxlength="20"/>
+              </div>
+              <div class="err-msg" id="err-username"></div>
+            </div>
+            <div class="field">
+              <label>Phone Number <span class="req">*</span></label>
+              <div class="input-wrap">
+                <span class="input-ico">📱</span>
+                <input id="phoneNumber" type="tel" placeholder="10 digits" maxlength="10"/>
+              </div>
+              <div class="err-msg" id="err-phone"></div>
+            </div>
+          </div>
+          <div class="field">
+            <label>Email Address <span class="req">*</span></label>
+            <div class="input-wrap">
+              <span class="input-ico">✉️</span>
+              <input id="email" type="email" placeholder="you@example.com"/>
+            </div>
+            <div class="err-msg" id="err-email"></div>
+          </div>
+          <div class="field">
+            <label>Master Password <span class="req">*</span></label>
+            <div class="input-wrap">
+              <span class="input-ico">🔑</span>
+              <input id="password" type="password" placeholder="Minimum 8 characters"/>
+              <button type="button" class="eye-btn" id="eyeBtn" onclick="togglePwd()">👁</button>
+            </div>
+            <div class="strength-wrap" id="strengthWrap">
+              <div class="strength-track"><div class="strength-fill" id="strengthFill"></div></div>
+              <div class="strength-label" id="strengthLabel"></div>
+            </div>
+            <div class="err-msg" id="err-password"></div>
+          </div>
+        </div>
+
+        <!-- Card 2 -->
+        <div class="card">
+          <div class="card-title">
+            <div class="card-ico">🛡️</div>
+            Security Questions
+            <span style="margin-left:auto;font-size:0.7rem;font-weight:500;color:var(--ink4);">For account recovery</span>
+          </div>
+          <div class="qa-block">
+            <div class="qa-num">Question 1</div>
+            <div class="field">
+              <div class="input-wrap">
+                <span class="input-ico">❓</span>
+                <select id="question1"><option value="">Select a question</option><option>What is your first school?</option><option>What is your favorite food?</option><option>What is your pet name?</option></select>
+              </div>
+              <div class="err-msg" id="err-q1"></div>
+            </div>
+            <div class="field">
+              <div class="input-wrap">
+                <span class="input-ico">💬</span>
+                <input id="answer1" type="text" placeholder="Your answer"/>
+              </div>
+              <div class="err-msg" id="err-a1"></div>
+            </div>
+          </div>
+          <div class="qa-block">
+            <div class="qa-num">Question 2</div>
+            <div class="field">
+              <div class="input-wrap">
+                <span class="input-ico">❓</span>
+                <select id="question2"><option value="">Select a question</option><option>What is your childhood nickname?</option><option>What is your favorite movie?</option><option>Where were you born?</option></select>
+              </div>
+              <div class="err-msg" id="err-q2"></div>
+            </div>
+            <div class="field">
+              <div class="input-wrap">
+                <span class="input-ico">💬</span>
+                <input id="answer2" type="text" placeholder="Your answer"/>
+              </div>
+              <div class="err-msg" id="err-a2"></div>
+            </div>
+          </div>
+          <div class="qa-block">
+            <div class="qa-num">Question 3</div>
+            <div class="field">
+              <div class="input-wrap">
+                <span class="input-ico">❓</span>
+                <select id="question3"><option value="">Select a question</option><option>What is your best friend's name?</option><option>What is your dream job?</option><option>What is your favorite sport?</option></select>
+              </div>
+              <div class="err-msg" id="err-q3"></div>
+            </div>
+            <div class="field">
+              <div class="input-wrap">
+                <span class="input-ico">💬</span>
+                <input id="answer3" type="text" placeholder="Your answer"/>
+              </div>
+              <div class="err-msg" id="err-a3"></div>
+            </div>
+          </div>
+        </div>
+
+        <button id="submitBtn" class="btn-submit" type="submit">Create Account →</button>
+      </form>
+
+      <div class="sign-in-link">Already have an account? <a href="/login">Sign in</a></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+function togglePwd(){
+  const f=document.getElementById("password"),b=document.getElementById("eyeBtn");
+  f.type=f.type==="password"?"text":"password";b.textContent=f.type==="password"?"👁":"🙈";
+}
+document.getElementById("password").addEventListener("input",function(){
+  const v=this.value,wrap=document.getElementById("strengthWrap"),
+    fill=document.getElementById("strengthFill"),lbl=document.getElementById("strengthLabel");
+  if(!v){wrap.style.display="none";return;}
+  wrap.style.display="block";
+  let s=0;
+  if(v.length>=8)s++;if(v.length>=12)s++;
+  if(/[A-Z]/.test(v))s++;if(/[a-z]/.test(v))s++;
+  if(/[0-9]/.test(v))s++;if(/[!@#$%^&*]/.test(v))s++;
+  const lvls=[
+    {w:"16%",bg:"#dc2626",t:"Very Weak",c:"#dc2626"},
+    {w:"32%",bg:"#f97316",t:"Weak",c:"#f97316"},
+    {w:"52%",bg:"#d97706",t:"Fair",c:"#d97706"},
+    {w:"68%",bg:"#d97706",t:"Medium",c:"#d97706"},
+    {w:"84%",bg:"#2563eb",t:"Strong",c:"#2563eb"},
+    {w:"100%",bg:"#059669",t:"Very Strong",c:"#059669"}
+  ];
+  const l=lvls[Math.min(s,5)];
+  fill.style.width=l.w;fill.style.background=l.bg;
+  lbl.textContent="Strength: "+l.t;lbl.style.color=l.c;
+});
+function setStep(n){
+  [1,2,3].forEach(i=>{
+    const num=document.getElementById("pn"+i),lbl=document.getElementById("pl"+i);
+    num.className="prog-num"+(i<n?" done":i===n?" active":"");
+    lbl.className="prog-label"+(i<n?" done":i===n?" active":"");
+  });
+  document.getElementById("pline1").className="prog-line"+(n>1?" done":"");
+  document.getElementById("pline2").className="prog-line"+(n>2?" done":"");
+}
+function updateProgress(){
+  const u=document.getElementById("username").value.trim();
+  const e=document.getElementById("email").value.trim();
+  const p=document.getElementById("password").value;
+  const q1=document.getElementById("question1").value;
+  const q2=document.getElementById("question2").value;
+  const q3=document.getElementById("question3").value;
+  const a1=document.getElementById("answer1").value.trim();
+  const a2=document.getElementById("answer2").value.trim();
+  const a3=document.getElementById("answer3").value.trim();
+  const s1=u&&e&&p;const s2=q1&&q2&&q3&&a1&&a2&&a3;
+  setStep(s2?3:s1?2:1);
+}
+document.querySelectorAll("input,select").forEach(el=>{
+  el.addEventListener("input",updateProgress);
+  el.addEventListener("change",updateProgress);
+});
+function showErr(id,msg){
+  const el=document.getElementById(id);
+  el.textContent=msg;el.style.display="block";
+  const inp=el.previousElementSibling?.querySelector("input,select");
+  if(inp)inp.classList.add("invalid");
+}
+function clearErrors(){
+  document.querySelectorAll(".err-msg").forEach(e=>{e.style.display="none";e.textContent="";});
+  document.querySelectorAll("input,select").forEach(e=>e.classList.remove("invalid"));
+  document.getElementById("globalError").style.display="none";
+}
+function validate(d){
+  let ok=true;
+  if(!d.username||d.username.length<3){showErr("err-username","At least 3 characters required");ok=false;}
+  else if(!/^[a-zA-Z0-9_]+$/.test(d.username)){showErr("err-username","Letters, numbers & underscore only");ok=false;}
+  if(!d.email||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(d.email)){showErr("err-email","Enter a valid email address");ok=false;}
+  if(!d.masterPassword||d.masterPassword.length<8){showErr("err-password","Minimum 8 characters required");ok=false;}
+  if(d.phoneNumber&&!/^[0-9]{10}$/.test(d.phoneNumber)){showErr("err-phone","Must be exactly 10 digits");ok=false;}
+  if(!d.question1){showErr("err-q1","Please select a question");ok=false;}
+  if(!d.answer1||d.answer1.length<2){showErr("err-a1","Answer is too short");ok=false;}
+  if(!d.question2){showErr("err-q2","Please select a question");ok=false;}
+  if(!d.answer2||d.answer2.length<2){showErr("err-a2","Answer is too short");ok=false;}
+  if(!d.question3){showErr("err-q3","Please select a question");ok=false;}
+  if(!d.answer3||d.answer3.length<2){showErr("err-a3","Answer is too short");ok=false;}
+  return ok;
+}
+document.getElementById("registerForm").addEventListener("submit",function(e){
+  e.preventDefault();clearErrors();
+  const data={
+    username:document.getElementById("username").value.trim(),
+    email:document.getElementById("email").value.trim(),
+    masterPassword:document.getElementById("password").value,
+    phoneNumber:document.getElementById("phoneNumber").value.trim(),
+    question1:document.getElementById("question1").value,
+    answer1:document.getElementById("answer1").value.trim(),
+    question2:document.getElementById("question2").value,
+    answer2:document.getElementById("answer2").value.trim(),
+    question3:document.getElementById("question3").value,
+    answer3:document.getElementById("answer3").value.trim()
+  };
+  if(!validate(data))return;
+  const btn=document.getElementById("submitBtn");
+  btn.disabled=true;btn.innerHTML='<div class="spinner"></div> Creating account...';
+  fetch("/api/auth/register",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(data)})
+  .then(res=>res.text().then(text=>({status:res.status,text})))
+  .then(({status,text})=>{
+    if(status===200){
+      setStep(3);
+      document.getElementById("successMsg").style.display="block";
+      document.getElementById("registerForm").style.display="none";
+      setTimeout(()=>window.location.href="/login",2000);
+      return;
+    }
+
+    btn.disabled=false; btn.innerHTML="Create Account \u2192";
+
+    // GlobalExceptionHandler always returns JSON - parse it
+    let msg = "Registration failed. Please try again.";
+    try {
+      const body = JSON.parse(text);
+      // @Valid field errors: body.messages = {fieldName: "error"}
+      if (body.messages) {
+        const m = body.messages;
+        if(m.username)       showErr("err-username",m.username);
+        if(m.email)          showErr("err-email",m.email);
+        if(m.masterPassword) showErr("err-password",m.masterPassword);
+        if(m.phoneNumber)    showErr("err-phone",m.phoneNumber);
+        if(m.question1)      showErr("err-q1",m.question1);
+        if(m.answer1)        showErr("err-a1",m.answer1);
+        if(m.question2)      showErr("err-q2",m.question2);
+        if(m.answer2)        showErr("err-a2",m.answer2);
+        if(m.question3)      showErr("err-q3",m.question3);
+        if(m.answer3)        showErr("err-a3",m.answer3);
+        return;
+      }
+      // Duplicate/runtime errors: body.message = "string"
+      if (body.message) msg = body.message;
+    } catch(e) {
+      if (text && text.length < 300) msg = text;
+    }
+
+    // Route error to the correct field or show globally
+    const lmsg = msg.toLowerCase();
+    if (lmsg.includes("username")) {
+      showErr("err-username", msg);
+      setStep(1);
+    } else if (lmsg.includes("email")) {
+      showErr("err-email", msg);
+      setStep(1);
+    } else {
+      const err = document.getElementById("globalError");
+      err.textContent = msg;
+      err.style.display = "block";
+    }
+  })
+  .catch(()=>{
+    btn.disabled=false; btn.innerHTML="Create Account \u2192";
+    const err=document.getElementById("globalError");
+    err.textContent="Network error. Please check your connection and try again.";
+    err.style.display="block";
+  });
+});
+</script>
+</body>
+</html>

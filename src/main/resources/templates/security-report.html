@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Security Audit — RevPasswordManager</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --bg:#f0f4f8;
+  --bg2:#e8eef5;
+  --bg3:#dde6f0;
+  --white:#ffffff;
+  --ink:#0f172a;
+  --ink2:#334155;
+  --ink3:#64748b;
+  --ink4:#94a3b8;
+  --border:#e2e8f0;
+  --border2:#cbd5e1;
+  --blue:#2563eb;
+  --blue-dim:rgba(37,99,235,0.08);
+  --blue-glow:rgba(37,99,235,0.18);
+  --purple:#7c3aed;
+  --danger:#dc2626;
+  --danger-dim:rgba(220,38,38,0.08);
+  --warning:#d97706;
+  --warning-dim:rgba(217,119,6,0.08);
+  --success:#059669;
+  --success-dim:rgba(5,150,105,0.08);
+  --font:'Plus Jakarta Sans',system-ui,sans-serif;
+  --r:8px;--r-lg:14px;--sidebar:240px;
+}
+body{font-family:var(--font);background:var(--bg);color:var(--ink);min-height:100vh;-webkit-font-smoothing:antialiased;}
+a{text-decoration:none;color:inherit;}
+
+/* LAYOUT */
+.layout{display:flex;min-height:100vh;}
+
+/* SIDEBAR */
+aside{
+  width:var(--sidebar);flex-shrink:0;
+  background:var(--white);border-right:1px solid var(--border);
+  display:flex;flex-direction:column;
+  position:sticky;top:0;height:100vh;
+  box-shadow:1px 0 4px rgba(0,0,0,0.04);
+}
+.brand{display:flex;align-items:center;gap:10px;padding:20px 18px 18px;border-bottom:1px solid var(--border);text-decoration:none;}
+.brand-icon{width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,var(--blue),var(--purple));display:grid;place-items:center;font-size:0.85rem;box-shadow:0 2px 10px var(--blue-glow);flex-shrink:0;}
+.brand-name{font-size:0.88rem;font-weight:800;color:var(--ink);letter-spacing:-0.01em;line-height:1.2;}
+.brand-name span{color:var(--blue);}
+.nav-section{padding:12px 0;}
+.nav-label{font-size:0.62rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--ink4);padding:0 18px 6px;}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 18px;color:var(--ink3);font-size:0.84rem;font-weight:500;transition:all .15s;border-left:3px solid transparent;margin:1px 0;}
+.nav-item:hover{color:var(--ink);background:var(--bg);border-left-color:var(--border2);}
+.nav-item.active{color:var(--blue);background:var(--blue-dim);border-left-color:var(--blue);font-weight:600;}
+.nav-item .ni{font-size:0.95rem;width:20px;text-align:center;flex-shrink:0;}
+.nav-bottom{margin-top:auto;padding:12px 0;border-top:1px solid var(--border);}
+.logout-btn{display:flex;align-items:center;gap:10px;width:100%;padding:9px 18px;background:none;border:none;cursor:pointer;color:var(--danger);font-size:0.84rem;font-weight:500;font-family:var(--font);transition:background .15s;}
+.logout-btn:hover{background:var(--danger-dim);}
+
+/* MAIN */
+main{flex:1;padding:28px 32px;overflow-y:auto;display:flex;flex-direction:column;gap:20px;}
+@keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+
+/* TOPBAR */
+.topbar{display:flex;align-items:center;justify-content:space-between;animation:rise .5s ease both;}
+.topbar h1{font-size:1.45rem;font-weight:800;letter-spacing:-0.03em;color:var(--ink);}
+.topbar p{font-size:0.83rem;color:var(--ink3);margin-top:2px;}
+
+/* SCAN CARD */
+.scan-card{
+  background:var(--white);border:1px solid var(--border);
+  border-radius:var(--r-lg);padding:36px 28px;
+  text-align:center;
+  box-shadow:0 1px 4px rgba(0,0,0,0.04);
+  animation:rise .5s ease .05s both;
+}
+.scan-icon{
+  width:64px;height:64px;margin:0 auto 16px;
+  border-radius:16px;
+  background:linear-gradient(135deg,var(--blue),var(--purple));
+  display:grid;place-items:center;font-size:1.8rem;
+  box-shadow:0 4px 20px var(--blue-glow);
+  animation:idlePulse 3s ease-in-out infinite;
+}
+@keyframes idlePulse{0%,100%{box-shadow:0 4px 20px var(--blue-glow);}50%{box-shadow:0 4px 32px rgba(37,99,235,0.35);}}
+.scanning .scan-icon{animation:scanPulse 0.9s ease-in-out infinite;}
+@keyframes scanPulse{0%,100%{box-shadow:0 0 0 0 rgba(37,99,235,0.4);}50%{box-shadow:0 0 0 16px rgba(37,99,235,0);}}
+.scan-card h2{font-size:1.05rem;font-weight:800;color:var(--ink);margin-bottom:6px;}
+.scan-card p{font-size:0.84rem;color:var(--ink3);line-height:1.55;max-width:360px;margin:0 auto 22px;}
+.btn-scan{
+  padding:12px 36px;border:none;border-radius:var(--r);
+  background:linear-gradient(135deg,var(--blue),var(--purple));
+  color:#fff;font:700 0.92rem/1 var(--font);
+  cursor:pointer;transition:all .2s;
+  box-shadow:0 4px 16px var(--blue-glow);
+  display:inline-flex;align-items:center;gap:8px;
+}
+.btn-scan:hover{opacity:0.9;transform:translateY(-1px);box-shadow:0 8px 24px rgba(37,99,235,0.35);}
+.btn-scan:disabled{opacity:0.6;cursor:not-allowed;transform:none;}
+.spinner{width:14px;height:14px;border:2px solid rgba(255,255,255,0.3);border-top-color:#fff;border-radius:50%;animation:spin .65s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* RESULTS */
+#auditResults{display:none;}
+#auditResults.visible{display:flex;flex-direction:column;gap:18px;}
+
+/* STATUS BANNER */
+.status-banner{
+  display:flex;align-items:center;gap:14px;
+  border-radius:var(--r-lg);padding:16px 20px;
+  animation:rise .4s ease both;
+}
+.status-banner.all-good{background:var(--success-dim);border:1px solid rgba(5,150,105,0.2);}
+.status-banner.issues{background:var(--danger-dim);border:1px solid rgba(220,38,38,0.2);}
+.sb-icon{font-size:1.6rem;flex-shrink:0;}
+.sb-body h3{font-size:0.95rem;font-weight:700;margin-bottom:2px;}
+.status-banner.all-good h3{color:var(--success);}
+.status-banner.issues h3{color:var(--danger);}
+.sb-body p{font-size:0.8rem;color:var(--ink3);}
+.sb-time{margin-left:auto;font-size:0.73rem;color:var(--ink4);text-align:right;flex-shrink:0;line-height:1.4;}
+
+/* ISSUE CARDS */
+.issue-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
+@media(max-width:820px){.issue-grid{grid-template-columns:1fr;}}
+
+.issue-card{
+  background:var(--white);border:1px solid var(--border);
+  border-radius:var(--r-lg);padding:20px;
+  box-shadow:0 1px 4px rgba(0,0,0,0.04);
+  position:relative;overflow:hidden;
+  transition:all .2s;animation:rise .5s ease both;
+}
+.issue-card:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,0,0,0.08);}
+.issue-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;}
+.ic-danger::before{background:linear-gradient(90deg,var(--danger),#f87171);}
+.ic-warning::before{background:linear-gradient(90deg,var(--warning),#fbbf24);}
+.ic-muted::before{background:linear-gradient(90deg,var(--ink4),#cbd5e1);}
+
+.ic-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.ic-icon-wrap{
+  width:40px;height:40px;border-radius:10px;
+  display:grid;place-items:center;font-size:1.1rem;
+}
+.ic-danger .ic-icon-wrap{background:var(--danger-dim);}
+.ic-warning .ic-icon-wrap{background:var(--warning-dim);}
+.ic-muted .ic-icon-wrap{background:var(--bg2);}
+
+/* SVG ring */
+.ring-wrap{width:40px;height:40px;position:relative;flex-shrink:0;}
+.ring-wrap svg{transform:rotate(-90deg);}
+.ring-bg{fill:none;stroke:var(--bg3);stroke-width:4;}
+.ring-fill{fill:none;stroke-width:4;stroke-linecap:round;transition:stroke-dashoffset 1s ease;}
+.ic-danger .ring-fill{stroke:var(--danger);}
+.ic-warning .ring-fill{stroke:var(--warning);}
+.ic-muted .ring-fill{stroke:var(--ink4);}
+.ring-pct{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:0.55rem;font-weight:700;color:var(--ink3);}
+
+.ic-count{font-size:2.2rem;font-weight:800;line-height:1;margin-bottom:3px;}
+.ic-danger .ic-count{color:var(--danger);}
+.ic-warning .ic-count{color:var(--warning);}
+.ic-muted .ic-count{color:var(--ink4);}
+.ic-label{font-size:0.84rem;font-weight:700;color:var(--ink);margin-bottom:2px;}
+.ic-desc{font-size:0.72rem;color:var(--ink4);}
+
+/* BOTTOM ROW */
+.bottom-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+@media(max-width:820px){.bottom-row{grid-template-columns:1fr;}}
+
+.chart-card,.tips-card{
+  background:var(--white);border:1px solid var(--border);
+  border-radius:var(--r-lg);padding:22px 20px;
+  box-shadow:0 1px 4px rgba(0,0,0,0.04);
+  animation:rise .5s ease .2s both;
+}
+.card-title{display:flex;align-items:center;gap:7px;font-size:0.88rem;font-weight:700;color:var(--ink);margin-bottom:16px;}
+.card-dot{width:7px;height:7px;border-radius:50%;background:linear-gradient(135deg,var(--blue),var(--purple));flex-shrink:0;}
+
+/* TIPS */
+.tip-item{display:flex;align-items:flex-start;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);}
+.tip-item:last-child{border-bottom:none;}
+.tip-ico{
+  width:30px;height:30px;border-radius:7px;
+  display:grid;place-items:center;font-size:0.85rem;flex-shrink:0;
+}
+.tip-good .tip-ico{background:var(--success-dim);}
+.tip-warn .tip-ico{background:var(--warning-dim);}
+.tip-bad  .tip-ico{background:var(--danger-dim);}
+.tip-text strong{display:block;font-size:0.81rem;font-weight:700;color:var(--ink);margin-bottom:1px;}
+.tip-text span{font-size:0.73rem;color:var(--ink3);}
+
+@media(max-width:700px){
+  aside{display:none;}
+  main{padding:20px 16px;}
+  .issue-grid,.bottom-row{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+<div class="layout">
+
+  <!-- SIDEBAR -->
+  <aside>
+    <a href="/dashboard" class="brand">
+      <div class="brand-icon">🔐</div>
+      <div class="brand-name">Rev<span>Password</span><br>Manager</div>
+    </a>
+    <div class="nav-section">
+      <div class="nav-label">Main</div>
+      <a href="/dashboard" class="nav-item"><span class="ni">📊</span> Dashboard</a>
+      <a href="/vault"     class="nav-item"><span class="ni">🔐</span> Vault</a>
+      <a href="/generator" class="nav-item"><span class="ni">⚡</span> Generator</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-label">Account</div>
+      <a href="/profile"         class="nav-item"><span class="ni">👤</span> Profile</a>
+      <a href="/security-report" class="nav-item active"><span class="ni">🛡️</span> Security</a>
+      <a href="/backup"          class="nav-item"><span class="ni">💾</span> Backup</a>
+    </div>
+    <div class="nav-bottom">
+      <button class="logout-btn" onclick="logout()"><span class="ni">🚪</span> Sign out</button>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main>
+    <div class="topbar">
+      <div>
+        <h1>Security Audit</h1>
+        <p>Scan your vault for weak, reused &amp; outdated passwords</p>
+      </div>
+    </div>
+
+    <!-- SCAN TRIGGER -->
+    <div class="scan-card" id="scanCard">
+      <div class="scan-icon">🛡️</div>
+      <h2>Run Security Audit</h2>
+      <p>Analyse your entire vault to detect vulnerabilities and get actionable recommendations.</p>
+      <button class="btn-scan" id="scanBtn" onclick="runAudit()">🔍 Start Security Scan</button>
+    </div>
+
+    <!-- RESULTS -->
+    <div id="auditResults">
+
+      <!-- Status banner -->
+      <div class="status-banner" id="statusBanner">
+        <div class="sb-icon" id="statusIcon"></div>
+        <div class="sb-body">
+          <h3 id="statusTitle"></h3>
+          <p id="statusDesc"></p>
+        </div>
+        <div class="sb-time" id="statusTime"></div>
+      </div>
+
+      <!-- Issue cards -->
+      <div class="issue-grid">
+        <!-- Weak -->
+        <div class="issue-card ic-danger" style="animation-delay:.05s;">
+          <div class="ic-top">
+            <div class="ic-icon-wrap">⚠️</div>
+            <div class="ring-wrap">
+              <svg width="40" height="40" viewBox="0 0 40 40">
+                <circle class="ring-bg" cx="20" cy="20" r="16"/>
+                <circle class="ring-fill" id="ring-weak" cx="20" cy="20" r="16" stroke-dasharray="100.5" stroke-dashoffset="100.5"/>
+              </svg>
+              <div class="ring-pct" id="pct-weak">0%</div>
+            </div>
+          </div>
+          <div class="ic-count" id="weakCount">—</div>
+          <div class="ic-label">Weak Passwords</div>
+          <div class="ic-desc">Below minimum strength threshold</div>
+        </div>
+
+        <!-- Reused -->
+        <div class="issue-card ic-warning" style="animation-delay:.1s;">
+          <div class="ic-top">
+            <div class="ic-icon-wrap">🔁</div>
+            <div class="ring-wrap">
+              <svg width="40" height="40" viewBox="0 0 40 40">
+                <circle class="ring-bg" cx="20" cy="20" r="16"/>
+                <circle class="ring-fill" id="ring-reused" cx="20" cy="20" r="16" stroke-dasharray="100.5" stroke-dashoffset="100.5"/>
+              </svg>
+              <div class="ring-pct" id="pct-reused">0%</div>
+            </div>
+          </div>
+          <div class="ic-count" id="reusedCount">—</div>
+          <div class="ic-label">Reused Passwords</div>
+          <div class="ic-desc">Same password across multiple accounts</div>
+        </div>
+
+        <!-- Outdated -->
+        <div class="issue-card ic-muted" style="animation-delay:.15s;">
+          <div class="ic-top">
+            <div class="ic-icon-wrap">📅</div>
+            <div class="ring-wrap">
+              <svg width="40" height="40" viewBox="0 0 40 40">
+                <circle class="ring-bg" cx="20" cy="20" r="16"/>
+                <circle class="ring-fill" id="ring-old" cx="20" cy="20" r="16" stroke-dasharray="100.5" stroke-dashoffset="100.5"/>
+              </svg>
+              <div class="ring-pct" id="pct-old">0%</div>
+            </div>
+          </div>
+          <div class="ic-count" id="oldCount">—</div>
+          <div class="ic-label">Outdated Passwords</div>
+          <div class="ic-desc">Not updated in over 90 days</div>
+        </div>
+      </div>
+
+      <!-- Chart + Tips -->
+      <div class="bottom-row">
+        <div class="chart-card">
+          <div class="card-title"><div class="card-dot"></div> Issue Breakdown</div>
+          <canvas id="auditChart" height="200"></canvas>
+        </div>
+
+        <div class="tips-card">
+          <div class="card-title"><div class="card-dot"></div> Recommendations</div>
+          <div id="tipsList"></div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<script>
+const userId=localStorage.getItem("userId");
+if(!userId){window.location.replace("/login");}
+
+let auditChart=null;
+
+function runAudit(){
+  const btn=document.getElementById("scanBtn");
+  const card=document.getElementById("scanCard");
+  btn.disabled=true;
+  btn.innerHTML='<div class="spinner"></div> Scanning vault...';
+  card.classList.add("scanning");
+
+  fetch("/api/security/audit/"+userId)
+  .then(r=>{if(!r.ok)throw new Error();return r.json();})
+  .then(data=>{
+    card.classList.remove("scanning");
+    btn.disabled=false;
+    btn.innerHTML="🔍 Re-run Scan";
+    renderResults(data);
+  })
+  .catch(()=>{
+    card.classList.remove("scanning");
+    btn.disabled=false;
+    btn.innerHTML="🔍 Start Security Scan";
+    alert("Audit failed. Please try again.");
+  });
+}
+
+function setRing(ringId,pctId,count,total){
+  const pct=total>0?Math.round((count/total)*100):0;
+  const circ=100.5;
+  const offset=circ-(pct/100)*circ;
+  setTimeout(()=>document.getElementById(ringId).style.strokeDashoffset=offset,200);
+  document.getElementById(pctId).textContent=pct+"%";
+}
+
+function renderResults(data){
+  const weak=data.weakPasswordsCount||0;
+  const reused=data.reusedPasswordsCount||0;
+  const old=data.oldPasswordsCount||0;
+  const total=weak+reused+old;
+
+  animateCount("weakCount",weak);
+  animateCount("reusedCount",reused);
+  animateCount("oldCount",old);
+
+  const cap=Math.max(total,1);
+  setRing("ring-weak","pct-weak",weak,cap);
+  setRing("ring-reused","pct-reused",reused,cap);
+  setRing("ring-old","pct-old",old,cap);
+
+  // Status banner
+  const banner=document.getElementById("statusBanner");
+  if(total===0){
+    banner.className="status-banner all-good";
+    document.getElementById("statusIcon").textContent="✅";
+    document.getElementById("statusTitle").textContent="Your vault is secure!";
+    document.getElementById("statusDesc").textContent="No issues detected. Keep up the great security hygiene.";
+  } else {
+    banner.className="status-banner issues";
+    document.getElementById("statusIcon").textContent="🚨";
+    document.getElementById("statusTitle").textContent=total+" issue"+(total!==1?"s":"")+" found";
+    document.getElementById("statusDesc").textContent="Address these issues to improve your vault security score.";
+  }
+  if(data.generatedAt){
+    document.getElementById("statusTime").innerHTML="Scanned at<br>"+new Date(data.generatedAt).toLocaleString();
+  }
+
+  // Chart
+  if(auditChart)auditChart.destroy();
+  auditChart=new Chart(document.getElementById("auditChart"),{
+    type:"bar",
+    data:{
+      labels:["Weak","Reused","Outdated"],
+      datasets:[{
+        data:[weak,reused,old],
+        backgroundColor:["rgba(220,38,38,0.15)","rgba(217,119,6,0.15)","rgba(148,163,184,0.2)"],
+        borderColor:["#dc2626","#d97706","#94a3b8"],
+        borderWidth:2,borderRadius:6
+      }]
+    },
+    options:{
+      responsive:true,
+      plugins:{
+        legend:{display:false},
+        tooltip:{
+          backgroundColor:var_white(),
+          borderColor:"#e2e8f0",borderWidth:1,
+          titleColor:"#0f172a",bodyColor:"#64748b",padding:10,
+          boxShadow:"0 4px 12px rgba(0,0,0,0.1)"
+        }
+      },
+      scales:{
+        x:{grid:{color:"#f1f5f9"},ticks:{color:"#64748b",font:{family:"Plus Jakarta Sans",size:11}}},
+        y:{grid:{color:"#f1f5f9"},ticks:{color:"#64748b",stepSize:1,font:{family:"Plus Jakarta Sans",size:11}},beginAtZero:true}
+      }
+    }
+  });
+
+  // Tips
+  const tips=[];
+  if(weak>0)   tips.push({ico:"⚠️",cls:"tip-bad",  title:"Fix "+weak+" weak password"+(weak>1?"s":""),  desc:"Use the Generator to create strong replacements"});
+  if(reused>0) tips.push({ico:"🔁",cls:"tip-warn", title:"Remove "+reused+" reused password"+(reused>1?"s":""), desc:"Each account should have a unique password"});
+  if(old>0)    tips.push({ico:"📅",cls:"tip-warn", title:"Rotate "+old+" outdated password"+(old>1?"s":""),  desc:"Update passwords not changed in over 90 days"});
+  if(total===0)tips.push({ico:"🏆",cls:"tip-good", title:"Excellent vault hygiene!", desc:"All passwords are unique, strong, and up-to-date"});
+  tips.push({ico:"🔑",cls:"tip-good",title:"Enable 2FA on important accounts",desc:"Extra protection for banking, email & work accounts"});
+  tips.push({ico:"💾",cls:"tip-good",title:"Keep regular backups",desc:"Export your vault backup from the Backup page"});
+
+  document.getElementById("tipsList").innerHTML=tips.map(t=>`
+    <div class="tip-item ${t.cls}">
+      <div class="tip-ico">${t.ico}</div>
+      <div class="tip-text"><strong>${t.title}</strong><span>${t.desc}</span></div>
+    </div>`).join("");
+
+  document.getElementById("auditResults").className="visible";
+}
+
+function var_white(){return"#ffffff";}
+
+function animateCount(id,target){
+  const el=document.getElementById(id);
+  let cur=0;
+  const step=Math.ceil(target/20)||1;
+  const t=setInterval(()=>{
+    cur=Math.min(cur+step,target);
+    el.textContent=cur;
+    if(cur>=target)clearInterval(t);
+  },40);
+}
+
+function logout(){localStorage.clear();window.location.href="/login";}
+</script>
+</body>
+</html>

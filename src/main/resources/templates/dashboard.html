@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Dashboard — RevPasswordManager</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --bg:#f0f4f8;
+  --bg2:#e8eef5;
+  --bg3:#dde6f0;
+  --white:#ffffff;
+  --ink:#0f172a;
+  --ink2:#334155;
+  --ink3:#64748b;
+  --ink4:#94a3b8;
+  --border:#e2e8f0;
+  --border2:#cbd5e1;
+  --blue:#2563eb;
+  --blue-lt:#3b82f6;
+  --blue-dim:rgba(37,99,235,0.08);
+  --blue-glow:rgba(37,99,235,0.18);
+  --danger:#dc2626;
+  --danger-dim:rgba(220,38,38,0.08);
+  --warning:#d97706;
+  --warning-dim:rgba(217,119,6,0.08);
+  --success:#059669;
+  --success-dim:rgba(5,150,105,0.08);
+  --purple:#7c3aed;
+  --purple-dim:rgba(124,58,237,0.08);
+  --font:'Plus Jakarta Sans',system-ui,sans-serif;
+  --r:8px;--r-lg:14px;
+  --sidebar:240px;
+}
+body{font-family:var(--font);background:var(--bg);color:var(--ink);min-height:100vh;-webkit-font-smoothing:antialiased;}
+a{text-decoration:none;color:inherit;}
+
+/* ══ LAYOUT ══ */
+.layout{display:flex;min-height:100vh;}
+
+/* ══ SIDEBAR ══ */
+aside{
+  width:var(--sidebar);flex-shrink:0;
+  background:var(--white);
+  border-right:1px solid var(--border);
+  display:flex;flex-direction:column;
+  position:sticky;top:0;height:100vh;
+  box-shadow:1px 0 4px rgba(0,0,0,0.04);
+}
+.brand{
+  display:flex;align-items:center;gap:10px;
+  padding:20px 18px 18px;
+  border-bottom:1px solid var(--border);
+  text-decoration:none;
+}
+.brand-icon{
+  width:32px;height:32px;border-radius:8px;
+  background:linear-gradient(135deg,var(--blue),var(--purple));
+  display:grid;place-items:center;font-size:0.85rem;
+  box-shadow:0 2px 10px var(--blue-glow);flex-shrink:0;
+}
+.brand-name{font-size:0.88rem;font-weight:800;color:var(--ink);letter-spacing:-0.01em;line-height:1.2;}
+.brand-name span{color:var(--blue);}
+
+.nav-section{padding:12px 0;}
+.nav-label{
+  font-size:0.62rem;font-weight:700;letter-spacing:0.1em;
+  text-transform:uppercase;color:var(--ink4);
+  padding:0 18px 6px;
+}
+.nav-item{
+  display:flex;align-items:center;gap:10px;
+  padding:9px 18px;color:var(--ink3);
+  font-size:0.84rem;font-weight:500;
+  transition:all .15s;border-left:3px solid transparent;
+  margin:1px 0;
+}
+.nav-item:hover{color:var(--ink);background:var(--bg);border-left-color:var(--border2);}
+.nav-item.active{
+  color:var(--blue);background:var(--blue-dim);
+  border-left-color:var(--blue);font-weight:600;
+}
+.nav-item .ni{font-size:0.95rem;width:20px;text-align:center;flex-shrink:0;}
+
+.nav-bottom{
+  margin-top:auto;padding:12px 0;
+  border-top:1px solid var(--border);
+}
+.logout-btn{
+  display:flex;align-items:center;gap:10px;
+  width:100%;padding:9px 18px;
+  background:none;border:none;cursor:pointer;
+  color:var(--danger);font-size:0.84rem;font-weight:500;
+  font-family:var(--font);transition:background .15s;
+}
+.logout-btn:hover{background:var(--danger-dim);}
+
+/* ══ MAIN ══ */
+main{flex:1;padding:28px 32px;overflow-y:auto;}
+
+/* ══ TOPBAR ══ */
+.topbar{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:28px;
+  animation:rise .5s ease both;
+}
+@keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+.topbar-left h1{
+  font-size:1.45rem;font-weight:800;
+  letter-spacing:-0.03em;color:var(--ink);
+}
+.topbar-left p{font-size:0.83rem;color:var(--ink3);margin-top:2px;}
+.user-chip{
+  display:flex;align-items:center;gap:8px;
+  padding:7px 14px 7px 8px;
+  background:var(--white);border:1px solid var(--border);
+  border-radius:99px;font-size:0.82rem;color:var(--ink2);
+  box-shadow:0 1px 3px rgba(0,0,0,0.04);
+}
+.user-avatar{
+  width:28px;height:28px;border-radius:50%;
+  background:linear-gradient(135deg,var(--blue),var(--purple));
+  display:grid;place-items:center;
+  font-size:0.72rem;font-weight:700;color:#fff;
+}
+
+/* ══ STATS GRID ══ */
+.stats-grid{
+  display:grid;grid-template-columns:repeat(5,1fr);
+  gap:14px;margin-bottom:24px;
+}
+.stat-card{
+  background:var(--white);border:1px solid var(--border);
+  border-radius:var(--r-lg);padding:18px 16px;
+  position:relative;overflow:hidden;
+  transition:transform .2s,box-shadow .2s;
+  animation:rise .5s ease both;
+  box-shadow:0 1px 4px rgba(0,0,0,0.04);
+}
+.stat-card:nth-child(1){animation-delay:.05s}
+.stat-card:nth-child(2){animation-delay:.10s}
+.stat-card:nth-child(3){animation-delay:.15s}
+.stat-card:nth-child(4){animation-delay:.20s}
+.stat-card:nth-child(5){animation-delay:.25s}
+.stat-card:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,0,0,0.08);}
+.stat-card::after{
+  content:'';position:absolute;top:0;left:0;right:0;height:3px;
+}
+.stat-card.total::after  {background:linear-gradient(90deg,var(--blue),var(--blue-lt));}
+.stat-card.weak::after   {background:linear-gradient(90deg,var(--danger),#f87171);}
+.stat-card.medium::after {background:linear-gradient(90deg,var(--warning),#f59e0b);}
+.stat-card.strong::after {background:linear-gradient(90deg,var(--success),#10b981);}
+.stat-card.fav::after    {background:linear-gradient(90deg,var(--purple),#8b5cf6);}
+
+.stat-ico{
+  width:36px;height:36px;border-radius:9px;
+  display:grid;place-items:center;font-size:0.9rem;margin-bottom:12px;
+}
+.stat-card.total  .stat-ico{background:var(--blue-dim);}
+.stat-card.weak   .stat-ico{background:var(--danger-dim);}
+.stat-card.medium .stat-ico{background:var(--warning-dim);}
+.stat-card.strong .stat-ico{background:var(--success-dim);}
+.stat-card.fav    .stat-ico{background:var(--purple-dim);}
+
+.stat-val{
+  font-size:1.9rem;font-weight:800;line-height:1;
+  letter-spacing:-0.03em;margin-bottom:4px;
+}
+.stat-card.total  .stat-val{color:var(--blue);}
+.stat-card.weak   .stat-val{color:var(--danger);}
+.stat-card.medium .stat-val{color:var(--warning);}
+.stat-card.strong .stat-val{color:var(--success);}
+.stat-card.fav    .stat-val{color:var(--purple);}
+.stat-lbl{font-size:0.72rem;font-weight:600;color:var(--ink4);text-transform:uppercase;letter-spacing:0.05em;}
+
+/* ══ BOTTOM GRID ══ */
+.bottom-grid{display:grid;grid-template-columns:1.4fr 1fr;gap:16px;}
+
+/* ══ CHART CARD ══ */
+.chart-card,.actions-card{
+  background:var(--white);border:1px solid var(--border);
+  border-radius:var(--r-lg);padding:22px;
+  box-shadow:0 1px 4px rgba(0,0,0,0.04);
+  animation:rise .5s ease .3s both;
+}
+.actions-card{animation-delay:.35s;}
+.card-hd{
+  display:flex;align-items:center;gap:8px;
+  font-size:0.88rem;font-weight:700;color:var(--ink);
+  margin-bottom:18px;padding-bottom:14px;
+  border-bottom:1px solid var(--border);
+}
+.card-dot{
+  width:8px;height:8px;border-radius:50%;
+  background:linear-gradient(135deg,var(--blue),var(--purple));
+}
+
+/* score */
+.score-wrap{
+  margin-top:18px;background:var(--bg);
+  border:1px solid var(--border);border-radius:var(--r);
+  padding:16px;
+}
+.score-lbl{font-size:0.7rem;text-transform:uppercase;letter-spacing:0.08em;color:var(--ink4);margin-bottom:8px;font-weight:600;}
+.score-val{font-size:1.4rem;font-weight:800;letter-spacing:-0.02em;margin-bottom:8px;}
+.score-track{height:6px;background:var(--bg3);border-radius:99px;overflow:hidden;margin-bottom:5px;}
+.score-fill{height:100%;border-radius:99px;background:linear-gradient(90deg,var(--danger),var(--warning),var(--success));transition:width 1s ease;width:0;}
+.score-row{display:flex;justify-content:space-between;font-size:0.68rem;color:var(--ink4);}
+
+/* ══ QUICK ACTIONS ══ */
+.action-btn{
+  display:flex;align-items:center;gap:12px;
+  padding:12px 14px;
+  background:var(--bg);border:1px solid var(--border);
+  border-radius:var(--r);
+  color:var(--ink2);transition:all .15s;
+  margin-bottom:8px;
+}
+.action-btn:last-child{margin-bottom:0;}
+.action-btn:hover{
+  border-color:var(--blue);background:var(--blue-dim);
+  color:var(--ink);transform:translateX(3px);
+}
+.action-ico{
+  width:34px;height:34px;border-radius:8px;
+  display:grid;place-items:center;font-size:0.88rem;flex-shrink:0;
+}
+.action-btn:nth-child(1) .action-ico{background:var(--blue-dim);}
+.action-btn:nth-child(2) .action-ico{background:var(--success-dim);}
+.action-btn:nth-child(3) .action-ico{background:var(--warning-dim);}
+.action-btn:nth-child(4) .action-ico{background:var(--purple-dim);}
+.action-info{flex:1;}
+.action-info strong{display:block;font-size:0.84rem;font-weight:700;margin-bottom:1px;}
+.action-info span{font-size:0.74rem;color:var(--ink3);}
+.action-arr{color:var(--ink4);font-size:0.85rem;}
+
+/* ══ RESPONSIVE ══ */
+@media(max-width:1100px){.stats-grid{grid-template-columns:repeat(3,1fr);}}
+@media(max-width:900px){.bottom-grid{grid-template-columns:1fr;}}
+@media(max-width:700px){
+  aside{display:none;}
+  main{padding:20px 16px;}
+  .stats-grid{grid-template-columns:repeat(2,1fr);}
+}
+</style>
+</head>
+<body>
+
+<div class="layout">
+
+  <!-- SIDEBAR -->
+  <aside>
+    <a href="/dashboard" class="brand">
+      <div class="brand-icon">🔐</div>
+      <div class="brand-name">Rev<span>Password</span><br>Manager</div>
+    </a>
+
+    <div class="nav-section">
+      <div class="nav-label">Main</div>
+      <a href="/dashboard"       class="nav-item active"><span class="ni">📊</span> Dashboard</a>
+      <a href="/vault"           class="nav-item"><span class="ni">🔐</span> Vault</a>
+      <a href="/generator"       class="nav-item"><span class="ni">⚡</span> Generator</a>
+    </div>
+
+    <div class="nav-section">
+      <div class="nav-label">Account</div>
+      <a href="/profile"         class="nav-item"><span class="ni">👤</span> Profile</a>
+      <a href="/security-report" class="nav-item"><span class="ni">🛡️</span> Security</a>
+      <a href="/backup"          class="nav-item"><span class="ni">💾</span> Backup</a>
+    </div>
+
+    <div class="nav-bottom">
+      <button class="logout-btn" onclick="logout()"><span class="ni">🚪</span> Sign out</button>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main>
+
+    <!-- Topbar -->
+    <div class="topbar">
+      <div class="topbar-left">
+        <h1>Security Dashboard</h1>
+        <p id="greetMsg">Loading your vault summary...</p>
+      </div>
+      <div class="user-chip">
+        <div class="user-avatar" id="avatarInitial">?</div>
+        <span id="usernameDisplay">Loading...</span>
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-grid">
+      <div class="stat-card total">
+        <div class="stat-ico">🔐</div>
+        <div class="stat-val" id="totalPasswords">—</div>
+        <div class="stat-lbl">Total Passwords</div>
+      </div>
+      <div class="stat-card weak">
+        <div class="stat-ico">⚠️</div>
+        <div class="stat-val" id="weakPasswords">—</div>
+        <div class="stat-lbl">Weak</div>
+      </div>
+      <div class="stat-card medium">
+        <div class="stat-ico">🔶</div>
+        <div class="stat-val" id="mediumPasswords">—</div>
+        <div class="stat-lbl">Medium</div>
+      </div>
+      <div class="stat-card strong">
+        <div class="stat-ico">✅</div>
+        <div class="stat-val" id="strongPasswords">—</div>
+        <div class="stat-lbl">Strong</div>
+      </div>
+      <div class="stat-card fav">
+        <div class="stat-ico">⭐</div>
+        <div class="stat-val" id="favoritePasswords">—</div>
+        <div class="stat-lbl">Favorites</div>
+      </div>
+    </div>
+
+    <!-- Bottom -->
+    <div class="bottom-grid">
+
+      <!-- Chart -->
+      <div class="chart-card">
+        <div class="card-hd"><div class="card-dot"></div> Password Breakdown</div>
+        <canvas id="passwordChart" height="180"></canvas>
+        <div class="score-wrap">
+          <div class="score-lbl">Vault Security Score</div>
+          <div class="score-val" id="scoreValue">—</div>
+          <div class="score-track"><div class="score-fill" id="scoreFill"></div></div>
+          <div class="score-row"><span>0 — Poor</span><span>50 — Fair</span><span>100 — Excellent</span></div>
+        </div>
+      </div>
+
+      <!-- Quick Actions -->
+      <div class="actions-card">
+        <div class="card-hd"><div class="card-dot"></div> Quick Actions</div>
+
+        <a href="/vault" class="action-btn">
+          <div class="action-ico">➕</div>
+          <div class="action-info">
+            <strong>Add Password</strong>
+            <span>Store a new credential</span>
+          </div>
+          <span class="action-arr">›</span>
+        </a>
+        <a href="/generator" class="action-btn">
+          <div class="action-ico">⚡</div>
+          <div class="action-info">
+            <strong>Generate Password</strong>
+            <span>Create a strong password</span>
+          </div>
+          <span class="action-arr">›</span>
+        </a>
+        <a href="/security-report" class="action-btn">
+          <div class="action-ico">🛡️</div>
+          <div class="action-info">
+            <strong>Security Audit</strong>
+            <span>Check for weak passwords</span>
+          </div>
+          <span class="action-arr">›</span>
+        </a>
+        <a href="/backup" class="action-btn">
+          <div class="action-ico">💾</div>
+          <div class="action-info">
+            <strong>Backup Vault</strong>
+            <span>Export encrypted backup</span>
+          </div>
+          <span class="action-arr">›</span>
+        </a>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<script>
+const userId=localStorage.getItem("userId");
+if(!userId||userId==="null"||userId==="undefined"){window.location.href="/login";throw new Error("Not logged in");}
+
+fetch("/api/user/"+userId)
+.then(r=>r.json())
+.then(u=>{
+  const name=u.username||"User";
+  document.getElementById("usernameDisplay").textContent=name;
+  document.getElementById("avatarInitial").textContent=name.charAt(0).toUpperCase();
+  const hr=new Date().getHours();
+  document.getElementById("greetMsg").textContent=
+    (hr<12?"Good morning ☀️":hr<17?"Good afternoon 🌤️":"Good evening 🌙")+", "+name+"!";
+});
+
+Promise.all([
+  fetch("/api/dashboard/summary/"+userId).then(r=>{if(!r.ok)throw new Error();return r.json();}),
+  fetch("/api/vault/"+userId).then(r=>{if(!r.ok)throw new Error();return r.json();})
+])
+.then(([data,vault])=>{
+  function setVal(id,val){
+    const el=document.getElementById(id);
+    el.textContent=val||0;
+  }
+  setVal("totalPasswords",data.totalPasswords);
+  setVal("weakPasswords",data.weakPasswords);
+  setVal("mediumPasswords",data.mediumPasswords);
+  setVal("strongPasswords",data.strongPasswords);
+  setVal("favoritePasswords",data.favoritePasswords);
+
+  const total=data.totalPasswords||1;
+  const score=Math.min(100,Math.max(0,Math.round(((data.strongPasswords||0)*100+(data.mediumPasswords||0)*50)/total)));
+  const sv=document.getElementById("scoreValue");
+  sv.textContent=score+" / 100";
+  sv.style.color=score>=70?"#059669":score>=40?"#d97706":"#dc2626";
+  setTimeout(()=>{document.getElementById("scoreFill").style.width=score+"%";},300);
+
+  // Build name lists per category from vault entries
+  const nameMap={
+    "Weak":[], "Medium":[], "Strong":[], "Very Strong":[], "Favourites":[]
+  };
+  (vault||[]).forEach(e=>{
+    const name=e.accountName||"Unnamed";
+    const s=(e.passwordStrength||"").toLowerCase().replace(" ","");
+    if(s==="weak")nameMap["Weak"].push(name);
+    else if(s==="medium")nameMap["Medium"].push(name);
+    else if(s==="strong")nameMap["Strong"].push(name);
+    else if(s==="verystrong"||s==="very strong")nameMap["Very Strong"].push(name);
+    if(e.isFavorite)nameMap["Favourites"].push(name);
+  });
+
+  const ctx=document.getElementById("passwordChart");
+  new Chart(ctx,{
+    type:"bar",
+    data:{
+      labels:["Weak","Medium","Strong","Very Strong","Favourites"],
+      datasets:[{
+        label:"Passwords",
+        data:[
+          data.weakPasswords||0,
+          data.mediumPasswords||0,
+          data.strongPasswords||0,
+          data.veryStrongPasswords||0,
+          data.favoritePasswords||0
+        ],
+        backgroundColor:["#fca5a5","#fcd34d","#93c5fd","#6ee7b7","#fbbf24"],
+        borderColor:["#dc2626","#d97706","#2563eb","#059669","#f59e0b"],
+        borderWidth:2,
+        borderRadius:8,
+        borderSkipped:false
+      }]
+    },
+    options:{
+      responsive:true,
+      indexAxis:"x",
+      plugins:{
+        legend:{display:false},
+        tooltip:{
+          backgroundColor:"#fff",borderColor:"#e2e8f0",borderWidth:1,
+          titleColor:"#0f172a",bodyColor:"#64748b",padding:12,
+          boxPadding:4,
+          callbacks:{
+            title:function(items){
+              const lbl=items[0].label;
+              const count=items[0].parsed.y;
+              return lbl+" ("+count+")";
+            },
+            label:function(c){
+              const names=nameMap[c.label]||[];
+              if(names.length===0)return " No entries";
+              return names.map(n=>" • "+n);
+            },
+            afterLabel:function(){return "";}
+          }
+        }
+      },
+      scales:{
+        x:{
+          grid:{display:false},
+          ticks:{color:"#64748b",font:{family:"'Plus Jakarta Sans'",size:12}}
+        },
+        y:{
+          beginAtZero:true,
+          grid:{color:"#f1f5f9"},
+          ticks:{color:"#64748b",stepSize:1,font:{family:"'Plus Jakarta Sans'",size:11}}
+        }
+      }
+    }
+  });
+})
+.catch(()=>{
+  ["totalPasswords","weakPasswords","mediumPasswords","strongPasswords","favoritePasswords"]
+    .forEach(id=>document.getElementById(id).textContent="0");
+});
+
+function logout(){localStorage.clear();window.location.href="/login";}
+</script>
+</body>
+</html>

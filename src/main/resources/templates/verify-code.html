@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Verify Code — RevPasswordManager</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --bg:#f0f4f8;
+  --bg2:#e8eef5;
+  --white:#ffffff;
+  --ink:#0f172a;
+  --ink2:#334155;
+  --ink3:#64748b;
+  --ink4:#94a3b8;
+  --border:#e2e8f0;
+  --border2:#cbd5e1;
+  --blue:#2563eb;
+  --blue-dim:rgba(37,99,235,0.08);
+  --blue-glow:rgba(37,99,235,0.18);
+  --purple:#7c3aed;
+  --danger:#dc2626;
+  --danger-dim:rgba(220,38,38,0.08);
+  --success:#059669;
+  --success-dim:rgba(5,150,105,0.08);
+  --font:'Plus Jakarta Sans',system-ui,sans-serif;
+  --r:8px;--r-lg:14px;
+}
+body{
+  font-family:var(--font);background:var(--bg);color:var(--ink);
+  min-height:100vh;display:flex;flex-direction:column;
+  -webkit-font-smoothing:antialiased;
+}
+a{text-decoration:none;color:inherit;}
+
+/* NAV */
+nav{
+  height:60px;display:flex;align-items:center;justify-content:space-between;
+  padding:0 52px;
+  background:rgba(240,244,248,0.93);
+  backdrop-filter:blur(20px);
+  border-bottom:1px solid var(--border);
+  box-shadow:0 1px 3px rgba(0,0,0,0.04);
+}
+.nav-logo{display:flex;align-items:center;gap:10px;font-size:0.95rem;font-weight:800;color:var(--ink);letter-spacing:-0.02em;}
+.logo-icon{
+  width:30px;height:30px;border-radius:8px;
+  background:linear-gradient(135deg,var(--blue),var(--purple));
+  display:grid;place-items:center;font-size:0.8rem;
+  box-shadow:0 2px 10px var(--blue-glow);
+}
+
+/* MAIN */
+main{
+  flex:1;display:flex;align-items:center;justify-content:center;
+  padding:48px 24px;
+}
+
+/* CARD */
+.card-wrap{width:100%;max-width:420px;animation:rise .55s ease both;}
+@keyframes rise{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+
+/* top icon + heading */
+.card-top{text-align:center;margin-bottom:28px;}
+.shield-wrap{
+  width:60px;height:60px;margin:0 auto 16px;
+  background:linear-gradient(135deg,var(--blue),var(--purple));
+  border-radius:16px;display:grid;place-items:center;
+  font-size:1.6rem;
+  box-shadow:0 4px 20px var(--blue-glow);
+  animation:pulse 3s ease-in-out infinite;
+}
+@keyframes pulse{
+  0%,100%{box-shadow:0 4px 20px var(--blue-glow);}
+  50%{box-shadow:0 4px 32px rgba(37,99,235,0.35);}
+}
+.card-top h1{font-size:1.5rem;font-weight:800;letter-spacing:-0.03em;color:var(--ink);margin-bottom:6px;}
+.card-top p{font-size:0.84rem;color:var(--ink3);line-height:1.55;}
+.email-badge{
+  display:inline-flex;align-items:center;gap:5px;
+  margin-top:10px;padding:4px 13px;
+  background:var(--blue-dim);border:1px solid rgba(37,99,235,0.18);
+  border-radius:99px;font-size:0.78rem;font-weight:600;color:var(--blue);
+}
+
+/* CARD BODY */
+.card{
+  background:var(--white);border:1px solid var(--border);
+  border-radius:var(--r-lg);padding:28px 26px;
+  box-shadow:0 2px 12px rgba(0,0,0,0.06);
+}
+
+/* Error */
+.msg-error{
+  display:none;
+  background:var(--danger-dim);border:1px solid rgba(220,38,38,0.2);
+  border-radius:var(--r);padding:11px 14px;
+  color:var(--danger);font-size:0.82rem;margin-bottom:18px;
+  font-weight:500;animation:shake .35s ease;
+}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+
+/* OTP BOXES */
+.otp-label{
+  display:block;font-size:0.72rem;font-weight:600;
+  letter-spacing:0.04em;color:var(--ink3);margin-bottom:12px;
+}
+.otp-row{
+  display:flex;gap:8px;justify-content:center;
+  margin-bottom:6px;
+}
+.otp-box{
+  width:48px;height:56px;
+  background:var(--bg);border:1.5px solid var(--border2);
+  border-radius:var(--r);
+  color:var(--ink);font-family:var(--font);
+  font-size:1.5rem;font-weight:800;text-align:center;
+  outline:none;transition:all .2s;
+  caret-color:var(--blue);
+}
+.otp-box:focus{
+  border-color:var(--blue);
+  box-shadow:0 0 0 3px rgba(37,99,235,0.1);
+  background:var(--white);
+}
+.otp-box.filled{border-color:rgba(37,99,235,0.4);background:var(--blue-dim);}
+.otp-box.error{border-color:var(--danger)!important;box-shadow:0 0 0 3px var(--danger-dim)!important;animation:shake .35s ease;}
+
+/* TIMER */
+.timer-row{
+  display:flex;align-items:center;justify-content:space-between;
+  margin:14px 0 20px;font-size:0.79rem;color:var(--ink4);
+}
+.timer-val{font-weight:700;color:var(--blue);}
+.timer-val.expiring{color:var(--danger);}
+.resend-btn{
+  background:none;border:none;
+  color:var(--blue);font-size:0.79rem;font-weight:600;
+  cursor:pointer;font-family:var(--font);
+  opacity:0.4;pointer-events:none;transition:all .2s;
+}
+.resend-btn.active{opacity:1;pointer-events:all;}
+.resend-btn.active:hover{text-decoration:underline;}
+
+/* SUBMIT */
+.btn-verify{
+  width:100%;padding:13px;
+  background:linear-gradient(135deg,var(--blue),var(--purple));
+  border:none;border-radius:var(--r);
+  color:#fff;font:700 0.92rem/1 var(--font);
+  cursor:pointer;transition:all .2s;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  box-shadow:0 4px 16px var(--blue-glow);
+  margin-bottom:16px;
+}
+.btn-verify:hover{opacity:0.92;transform:translateY(-1px);box-shadow:0 8px 24px rgba(37,99,235,0.35);}
+.btn-verify:disabled{opacity:0.6;cursor:not-allowed;transform:none;}
+.spinner{width:14px;height:14px;border:2px solid rgba(255,255,255,0.3);border-top-color:#fff;border-radius:50%;animation:spin .65s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* BACK */
+.back-link{text-align:center;font-size:0.82rem;color:var(--ink3);}
+.back-link a{color:var(--blue);font-weight:600;}
+.back-link a:hover{text-decoration:underline;}
+
+/* SUCCESS */
+.success-state{
+  display:none;text-align:center;padding:16px 0;
+}
+.success-ico{
+  font-size:3rem;margin-bottom:12px;
+  animation:popIn .4s ease both;
+}
+@keyframes popIn{from{transform:scale(0.5);opacity:0}to{transform:scale(1);opacity:1}}
+.success-state h3{font-size:1.1rem;font-weight:800;color:var(--success);margin-bottom:5px;}
+.success-state p{font-size:0.83rem;color:var(--ink3);}
+
+/* FOOTER */
+footer{
+  text-align:center;padding:18px;
+  font-size:0.72rem;color:var(--ink4);
+  border-top:1px solid var(--border);
+}
+
+@media(max-width:480px){
+  nav{padding:0 20px;}
+  .otp-box{width:42px;height:50px;font-size:1.3rem;}
+  .otp-row{gap:6px;}
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a href="/" class="nav-logo">
+    <div class="logo-icon">🔐</div>
+    RevPasswordManager
+  </a>
+</nav>
+
+<!-- MAIN -->
+<main>
+  <div class="card-wrap">
+
+    <div class="card-top">
+      <div class="shield-wrap">🛡️</div>
+      <h1>Two-Factor Verification</h1>
+      <p>Enter the 6-digit code sent to your email</p>
+      <div class="email-badge">✉️ <span id="emailChip">your registered email</span></div>
+    </div>
+
+    <div class="card">
+
+      <div class="msg-error" id="errorBanner"></div>
+
+      <div id="otpForm">
+        <label class="otp-label">Verification Code</label>
+        <div class="otp-row" id="otpRow">
+          <input class="otp-box" maxlength="1" type="text" inputmode="numeric" pattern="[0-9]" id="d0"/>
+          <input class="otp-box" maxlength="1" type="text" inputmode="numeric" pattern="[0-9]" id="d1"/>
+          <input class="otp-box" maxlength="1" type="text" inputmode="numeric" pattern="[0-9]" id="d2"/>
+          <input class="otp-box" maxlength="1" type="text" inputmode="numeric" pattern="[0-9]" id="d3"/>
+          <input class="otp-box" maxlength="1" type="text" inputmode="numeric" pattern="[0-9]" id="d4"/>
+          <input class="otp-box" maxlength="1" type="text" inputmode="numeric" pattern="[0-9]" id="d5"/>
+        </div>
+
+        <div class="timer-row">
+          <span>Expires in <span class="timer-val" id="timerVal">10:00</span></span>
+          <button class="resend-btn" id="resendBtn" onclick="resendCode()">Resend code</button>
+        </div>
+
+        <button class="btn-verify" id="verifyBtn" onclick="verifyCode()">Verify &amp; Sign In →</button>
+
+        <div class="back-link">
+          <a href="/login">← Back to Sign in</a>
+        </div>
+      </div>
+
+      <!-- Success state -->
+      <div class="success-state" id="successState">
+        <div class="success-ico">✅</div>
+        <h3>Verified successfully!</h3>
+        <p>Redirecting to your dashboard...</p>
+      </div>
+
+    </div>
+  </div>
+</main>
+
+<footer>© 2026 RevPasswordManager · All data encrypted end-to-end</footer>
+
+<script>
+const username=localStorage.getItem("username");
+if(!username){window.location.href="/login";}
+
+// Show masked email
+fetch("/api/user/name/"+username)
+.then(r=>r.json())
+.then(u=>{
+  const email=u.email||"";
+  if(email){
+    const masked=email.replace(/(.{2}).*(@.*)/,"$1****$2");
+    document.getElementById("emailChip").textContent=masked;
+  }
+}).catch(()=>{});
+
+// OTP BOXES
+const boxes=Array.from({length:6},(_,i)=>document.getElementById("d"+i));
+
+boxes.forEach((box,i)=>{
+  box.addEventListener("input",e=>{
+    const v=e.target.value.replace(/\D/g,"");
+    box.value=v.slice(-1);
+    if(v&&i<5)boxes[i+1].focus();
+    updateFilledState();
+    if(getCode().length===6)verifyCode();
+  });
+  box.addEventListener("keydown",e=>{
+    if(e.key==="Backspace"&&!box.value&&i>0)boxes[i-1].focus();
+    if(e.key==="ArrowLeft"&&i>0)boxes[i-1].focus();
+    if(e.key==="ArrowRight"&&i<5)boxes[i+1].focus();
+  });
+  box.addEventListener("paste",e=>{
+    e.preventDefault();
+    const pasted=(e.clipboardData||window.clipboardData).getData("text").replace(/\D/g,"").slice(0,6);
+    pasted.split("").forEach((c,j)=>{if(boxes[j])boxes[j].value=c;});
+    if(pasted.length>0)boxes[Math.min(pasted.length,5)].focus();
+    updateFilledState();
+    if(pasted.length===6)verifyCode();
+  });
+});
+
+function getCode(){return boxes.map(b=>b.value).join("");}
+function updateFilledState(){boxes.forEach(b=>b.classList.toggle("filled",!!b.value));}
+function setBoxError(){boxes.forEach(b=>b.classList.add("error"));setTimeout(()=>boxes.forEach(b=>b.classList.remove("error")),1200);}
+function clearBoxError(){boxes.forEach(b=>b.classList.remove("error"));}
+
+// TIMER
+let timeLeft=600;
+const timerEl=document.getElementById("timerVal");
+const resendBtn=document.getElementById("resendBtn");
+const timerInterval=setInterval(()=>{
+  timeLeft--;
+  const m=Math.floor(timeLeft/60),s=timeLeft%60;
+  timerEl.textContent=m+":"+(s<10?"0"+s:s);
+  timerEl.classList.toggle("expiring",timeLeft<=60);
+  if(timeLeft<=0){clearInterval(timerInterval);timerEl.textContent="Expired";resendBtn.classList.add("active");}
+},1000);
+setTimeout(()=>resendBtn.classList.add("active"),60000);
+
+function resendCode(){
+  resendBtn.classList.remove("active");
+  resendBtn.textContent="Sent!";
+  timeLeft=600;timerEl.classList.remove("expiring");
+  setTimeout(()=>{resendBtn.textContent="Resend code";},5000);
+}
+
+// VERIFY
+function showError(msg){
+  const b=document.getElementById("errorBanner");
+  b.textContent=msg;b.style.display="block";
+  b.style.animation="none";
+  requestAnimationFrame(()=>b.style.animation="shake .35s ease");
+  setBoxError();
+}
+
+function verifyCode(){
+  const code=getCode();
+  if(code.length<6){showError("Please enter all 6 digits.");return;}
+  clearBoxError();
+  document.getElementById("errorBanner").style.display="none";
+  const btn=document.getElementById("verifyBtn");
+  btn.disabled=true;btn.innerHTML='<div class="spinner"></div> Verifying...';
+
+  fetch("/api/user/name/"+username)
+  .then(r=>{if(!r.ok)throw new Error();return r.json();})
+  .then(user=>{
+    const userId=user.id;
+    return fetch("/api/security/verify-code?userId="+userId+"&code="+code,{method:"POST"})
+    .then(vr=>vr.text().then(msg=>({status:vr.status,msg,userId})));
+  })
+  .then(({status,msg,userId})=>{
+    if(status===200&&msg==="Verification successful"){
+      localStorage.setItem("userId",userId);
+      clearInterval(timerInterval);
+      document.getElementById("otpForm").style.display="none";
+      document.getElementById("errorBanner").style.display="none";
+      document.getElementById("successState").style.display="block";
+      setTimeout(()=>window.location.href="/dashboard",1500);
+    } else {
+      btn.disabled=false;btn.innerHTML="Verify &amp; Sign In →";
+      showError(msg||"Invalid or expired verification code.");
+    }
+  })
+  .catch(()=>{
+    btn.disabled=false;btn.innerHTML="Verify &amp; Sign In →";
+    showError("Verification failed. Please try again.");
+  });
+}
+
+setTimeout(()=>boxes[0].focus(),300);
+</script>
+</body>
+</html>

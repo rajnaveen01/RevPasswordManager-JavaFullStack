@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    RevPasswordManager - Log4j2 Configuration
+    File: src/main/resources/log4j2.xml
+
+    4 Appenders:
+      1. Console      - colored output to terminal
+      2. app.log      - all INFO+ logs, rolls daily / 10MB
+      3. error.log    - ERROR level only
+      4. security.log - auth / vault security events
+-->
+<Configuration status="WARN" monitorInterval="30">
+
+    <Properties>
+        <Property name="LOG_DIR">logs</Property>
+        <Property name="LOG_PATTERN">%d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n</Property>
+        <Property name="CON_PATTERN">%d{HH:mm:ss.SSS} %highlight{%-5level}{FATAL=red blink, ERROR=red, WARN=yellow, INFO=green, DEBUG=cyan} [%t] %style{%logger{36}}{cyan} - %msg%n</Property>
+    </Properties>
+
+    <Appenders>
+
+        <!-- 1. Console with color -->
+        <Console name="ConsoleAppender" target="SYSTEM_OUT">
+            <PatternLayout pattern="${CON_PATTERN}" disableAnsi="false"/>
+        </Console>
+
+        <!-- 2. app.log — all INFO+ events, rolls daily or at 10 MB -->
+        <RollingFile name="AppFileAppender"
+                     fileName="${LOG_DIR}/app.log"
+                     filePattern="${LOG_DIR}/archive/app-%d{yyyy-MM-dd}-%i.log.gz">
+            <PatternLayout pattern="${LOG_PATTERN}"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true"/>
+                <SizeBasedTriggeringPolicy size="10MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="30"/>
+            <ThresholdFilter level="INFO" onMatch="ACCEPT" onMismatch="DENY"/>
+        </RollingFile>
+
+        <!-- 3. error.log — ERROR and FATAL only -->
+        <RollingFile name="ErrorFileAppender"
+                     fileName="${LOG_DIR}/error.log"
+                     filePattern="${LOG_DIR}/archive/error-%d{yyyy-MM-dd}-%i.log.gz">
+            <PatternLayout pattern="${LOG_PATTERN}"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true"/>
+                <SizeBasedTriggeringPolicy size="5MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="15"/>
+            <ThresholdFilter level="ERROR" onMatch="ACCEPT" onMismatch="DENY"/>
+        </RollingFile>
+
+        <!-- 4. security.log — auth, login, vault, 2FA events -->
+        <RollingFile name="SecurityFileAppender"
+                     fileName="${LOG_DIR}/security.log"
+                     filePattern="${LOG_DIR}/archive/security-%d{yyyy-MM-dd}-%i.log.gz">
+            <PatternLayout pattern="${LOG_PATTERN}"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true"/>
+                <SizeBasedTriggeringPolicy size="5MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="30"/>
+        </RollingFile>
+
+    </Appenders>
+
+    <Loggers>
+
+        <!-- Application package — DEBUG so all log levels show -->
+        <Logger name="com.revpasswordmanager" level="DEBUG" additivity="false">
+            <AppenderRef ref="ConsoleAppender"/>
+            <AppenderRef ref="AppFileAppender"/>
+            <AppenderRef ref="ErrorFileAppender"/>
+        </Logger>
+
+        <!-- Auth events → also write to security.log -->
+        <Logger name="com.revpasswordmanager.serviceimpl.AuthServiceImpl"
+                level="INFO" additivity="false">
+            <AppenderRef ref="ConsoleAppender"/>
+            <AppenderRef ref="SecurityFileAppender"/>
+            <AppenderRef ref="AppFileAppender"/>
+        </Logger>
+
+        <!-- Vault events → also write to security.log -->
+        <Logger name="com.revpasswordmanager.serviceimpl.VaultServiceImpl"
+                level="INFO" additivity="false">
+            <AppenderRef ref="ConsoleAppender"/>
+            <AppenderRef ref="SecurityFileAppender"/>
+            <AppenderRef ref="AppFileAppender"/>
+        </Logger>
+
+        <!-- Hibernate SQL — WARN only (change to DEBUG to see all SQL) -->
+        <Logger name="org.hibernate.SQL" level="WARN" additivity="false">
+            <AppenderRef ref="ConsoleAppender"/>
+        </Logger>
+
+        <!-- Spring Framework -->
+        <Logger name="org.springframework" level="INFO" additivity="false">
+            <AppenderRef ref="ConsoleAppender"/>
+            <AppenderRef ref="AppFileAppender"/>
+        </Logger>
+
+        <!-- Root logger -->
+        <Root level="INFO">
+            <AppenderRef ref="ConsoleAppender"/>
+            <AppenderRef ref="AppFileAppender"/>
+            <AppenderRef ref="ErrorFileAppender"/>
+        </Root>
+
+    </Loggers>
+
+</Configuration>

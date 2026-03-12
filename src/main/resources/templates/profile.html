@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Profile — RevPasswordManager</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --bg:#f0f4f8;--bg2:#e8eef5;--bg3:#dde6f0;
+  --white:#ffffff;
+  --ink:#0f172a;--ink2:#334155;--ink3:#64748b;--ink4:#94a3b8;
+  --border:#e2e8f0;--border2:#cbd5e1;
+  --blue:#2563eb;--blue-dim:rgba(37,99,235,0.08);--blue-glow:rgba(37,99,235,0.18);
+  --purple:#7c3aed;--purple-dim:rgba(124,58,237,0.08);
+  --danger:#dc2626;--danger-dim:rgba(220,38,38,0.08);
+  --warning:#d97706;--warning-dim:rgba(217,119,6,0.08);
+  --success:#059669;--success-dim:rgba(5,150,105,0.08);
+  --font:'Plus Jakarta Sans',system-ui,sans-serif;
+  --r:8px;--r-lg:14px;--sidebar:240px;
+}
+body{font-family:var(--font);background:var(--bg);color:var(--ink);min-height:100vh;-webkit-font-smoothing:antialiased;}
+a{text-decoration:none;color:inherit;}
+
+/* SIDEBAR */
+.layout{display:flex;min-height:100vh;}
+aside{
+  width:var(--sidebar);flex-shrink:0;background:var(--white);
+  border-right:1px solid var(--border);display:flex;flex-direction:column;
+  position:sticky;top:0;height:100vh;box-shadow:1px 0 4px rgba(0,0,0,0.04);
+}
+.brand{display:flex;align-items:center;gap:10px;padding:20px 18px 18px;border-bottom:1px solid var(--border);}
+.brand-icon{width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,var(--blue),var(--purple));display:grid;place-items:center;font-size:0.85rem;box-shadow:0 2px 10px var(--blue-glow);flex-shrink:0;}
+.brand-name{font-size:0.88rem;font-weight:800;color:var(--ink);letter-spacing:-0.01em;line-height:1.2;}
+.brand-name span{color:var(--blue);}
+.nav-section{padding:12px 0;}
+.nav-label{font-size:0.62rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--ink4);padding:0 18px 6px;}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 18px;color:var(--ink3);font-size:0.84rem;font-weight:500;transition:all .15s;border-left:3px solid transparent;margin:1px 0;}
+.nav-item:hover{color:var(--ink);background:var(--bg);border-left-color:var(--border2);}
+.nav-item.active{color:var(--blue);background:var(--blue-dim);border-left-color:var(--blue);font-weight:600;}
+.nav-item .ni{font-size:0.95rem;width:20px;text-align:center;flex-shrink:0;}
+.nav-bottom{margin-top:auto;padding:12px 0;border-top:1px solid var(--border);}
+.logout-btn{display:flex;align-items:center;gap:10px;width:100%;padding:9px 18px;background:none;border:none;cursor:pointer;color:var(--danger);font-size:0.84rem;font-weight:500;font-family:var(--font);transition:background .15s;}
+.logout-btn:hover{background:var(--danger-dim);}
+
+/* MAIN */
+main{flex:1;padding:28px 32px;overflow-y:auto;}
+@keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+
+.topbar{margin-bottom:24px;animation:rise .5s ease both;}
+.topbar h1{font-size:1.45rem;font-weight:800;letter-spacing:-0.03em;color:var(--ink);}
+.topbar p{font-size:0.83rem;color:var(--ink3);margin-top:2px;}
+
+/* PROFILE GRID */
+.profile-grid{display:grid;grid-template-columns:260px 1fr;gap:18px;align-items:start;}
+@media(max-width:900px){.profile-grid{grid-template-columns:1fr;}}
+
+/* AVATAR CARD */
+.avatar-card{
+  background:var(--white);border:1px solid var(--border);
+  border-radius:var(--r-lg);padding:24px 20px;
+  text-align:center;box-shadow:0 1px 4px rgba(0,0,0,0.04);
+  animation:rise .5s ease .05s both;
+  position:sticky;top:28px;
+}
+.avatar-ring{
+  width:76px;height:76px;margin:0 auto 14px;border-radius:50%;
+  background:linear-gradient(135deg,var(--blue),var(--purple));
+  display:grid;place-items:center;
+  font-size:2rem;font-weight:800;color:#fff;
+  box-shadow:0 4px 20px var(--blue-glow);
+}
+.avatar-name{font-size:1rem;font-weight:700;color:var(--ink);margin-bottom:3px;}
+.avatar-email{font-size:0.78rem;color:var(--ink4);margin-bottom:18px;word-break:break-all;}
+
+.avatar-divider{border:none;border-top:1px solid var(--border);margin:0 0 16px;}
+
+.info-row{display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border);}
+.info-row:last-child{border-bottom:none;}
+.info-label{font-size:0.71rem;font-weight:600;color:var(--ink4);text-transform:uppercase;letter-spacing:0.04em;}
+.info-val{font-size:0.8rem;font-weight:500;color:var(--ink2);}
+.info-val.on{color:var(--success);font-weight:700;}
+.info-val.off{color:var(--danger);font-weight:700;}
+
+/* RIGHT COLUMN */
+.right-col{display:flex;flex-direction:column;gap:16px;}
+
+/* SECTION CARDS */
+.section-card{
+  background:var(--white);border:1px solid var(--border);
+  border-radius:var(--r-lg);padding:22px 20px;
+  box-shadow:0 1px 4px rgba(0,0,0,0.04);
+  animation:rise .5s ease both;
+  border-top:3px solid transparent;
+}
+.section-card.card-blue{border-top-color:var(--blue);animation-delay:.08s;}
+.section-card.card-purple{border-top-color:var(--purple);animation-delay:.12s;}
+.section-card.card-amber{border-top-color:var(--warning);animation-delay:.16s;}
+
+.section-hd{display:flex;align-items:center;gap:10px;margin-bottom:18px;}
+.section-icon{
+  width:32px;height:32px;border-radius:8px;
+  display:grid;place-items:center;font-size:0.9rem;flex-shrink:0;
+}
+.card-blue .section-icon{background:var(--blue-dim);}
+.card-purple .section-icon{background:var(--purple-dim);}
+.card-amber .section-icon{background:var(--warning-dim);}
+.section-hd h2{font-size:0.9rem;font-weight:700;color:var(--ink);}
+
+/* FORM */
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;}
+.form-row.full{grid-template-columns:1fr;}
+@media(max-width:600px){.form-row{grid-template-columns:1fr;}}
+
+.field{display:flex;flex-direction:column;gap:5px;}
+.field label{font-size:0.71rem;font-weight:600;letter-spacing:0.04em;color:var(--ink3);}
+.field label .req{color:var(--danger);margin-left:2px;}
+.field label .opt{color:var(--ink4);font-weight:400;font-size:0.68rem;letter-spacing:0;}
+.input-wrap{position:relative;}
+.input-ico{position:absolute;left:11px;top:50%;transform:translateY(-50%);font-size:0.82rem;pointer-events:none;z-index:1;}
+.field input{
+  width:100%;padding:10px 12px 10px 34px;
+  background:var(--bg);border:1px solid var(--border2);
+  border-radius:var(--r);color:var(--ink);font-family:var(--font);
+  font-size:0.87rem;outline:none;transition:all .2s;
+}
+.field input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(37,99,235,0.1);background:var(--white);}
+.field input::placeholder{color:var(--ink4);}
+.field input.invalid{border-color:var(--danger)!important;box-shadow:0 0 0 3px var(--danger-dim)!important;}
+.eye-btn{position:absolute;right:9px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--ink4);font-size:0.82rem;padding:4px;z-index:2;transition:color .15s;}
+.eye-btn:hover{color:var(--blue);}
+.err-msg{color:var(--danger);font-size:0.73rem;font-weight:500;display:none;}
+
+/* STRENGTH */
+.strength-wrap{display:none;margin-top:5px;}
+.strength-track{height:4px;background:var(--bg3);border-radius:99px;overflow:hidden;}
+.strength-fill{height:100%;border-radius:99px;transition:width .4s,background .4s;width:0;}
+.strength-label{font-size:0.71rem;margin-top:3px;font-weight:600;}
+
+/* ALERT */
+.alert{padding:10px 13px;border-radius:var(--r);font-size:0.82rem;font-weight:500;display:none;margin-bottom:12px;}
+.alert.success{background:var(--success-dim);border:1px solid rgba(5,150,105,0.2);color:var(--success);}
+.alert.error{background:var(--danger-dim);border:1px solid rgba(220,38,38,0.2);color:var(--danger);}
+
+/* 2FA ROW */
+.twofa-row{
+  display:flex;align-items:center;justify-content:space-between;
+  background:var(--bg);border:1px solid var(--border);
+  border-radius:var(--r);padding:14px 16px;margin-bottom:14px;
+  gap:12px;
+}
+.twofa-info strong{display:block;font-size:0.87rem;font-weight:700;color:var(--ink);margin-bottom:3px;}
+.twofa-info span{font-size:0.77rem;color:var(--ink3);}
+.twofa-badge{
+  display:flex;align-items:center;gap:6px;flex-shrink:0;
+  padding:4px 12px;border-radius:99px;font-size:0.75rem;font-weight:700;
+}
+.twofa-badge.on{background:var(--success-dim);color:var(--success);}
+.twofa-badge.off{background:var(--danger-dim);color:var(--danger);}
+.status-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+.twofa-badge.on .status-dot{background:var(--success);}
+.twofa-badge.off .status-dot{background:var(--danger);}
+
+/* BUTTONS */
+.btn-primary{
+  padding:11px 20px;border:none;border-radius:var(--r);
+  background:linear-gradient(135deg,var(--blue),var(--purple));
+  color:#fff;font:700 0.87rem/1 var(--font);cursor:pointer;
+  transition:all .2s;box-shadow:0 2px 10px var(--blue-glow);
+  display:inline-flex;align-items:center;justify-content:center;gap:7px;
+}
+.btn-primary:hover{opacity:0.9;transform:translateY(-1px);}
+.btn-primary:disabled{opacity:0.6;cursor:not-allowed;transform:none;}
+.btn-amber{
+  padding:11px 20px;border:none;border-radius:var(--r);
+  background:linear-gradient(135deg,var(--warning),#f59e0b);
+  color:#fff;font:700 0.87rem/1 var(--font);cursor:pointer;
+  transition:all .2s;box-shadow:0 2px 10px rgba(217,119,6,0.2);
+  display:inline-flex;align-items:center;justify-content:center;gap:7px;
+}
+.btn-amber:hover{opacity:0.9;transform:translateY(-1px);}
+.btn-amber:disabled{opacity:0.6;cursor:not-allowed;transform:none;}
+.btn-full{width:100%;}
+.spinner{width:13px;height:13px;border:2px solid rgba(255,255,255,0.3);border-top-color:#fff;border-radius:50%;animation:spin .65s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(15,23,42,0.55);z-index:1000;align-items:center;justify-content:center;backdrop-filter:blur(3px);}
+.modal-overlay.active{display:flex;}
+.modal-box{background:var(--white);border-radius:var(--r-lg);padding:28px 26px;width:100%;max-width:420px;box-shadow:0 20px 60px rgba(0,0,0,0.18);border-top:4px solid #059669;animation:rise .25s ease;}
+.modal-title{font-size:1rem;font-weight:700;color:var(--ink);margin-bottom:6px;display:flex;align-items:center;gap:8px;}
+.modal-sub{font-size:0.8rem;color:var(--ink3);margin-bottom:20px;}
+.modal-err{color:var(--danger);font-size:0.78rem;font-weight:500;margin-top:-10px;margin-bottom:12px;display:none;}
+@keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-7px)}40%{transform:translateX(7px)}60%{transform:translateX(-5px)}80%{transform:translateX(5px)}}
+.shake{animation:shake .4s;}
+
+/* GHOST BUTTON */
+.btn-ghost{
+  padding:7px 14px;border:1.5px solid var(--border2);border-radius:var(--r);
+  background:var(--white);color:var(--ink3);font:600 0.82rem/1 var(--font);
+  cursor:pointer;transition:all .15s;display:inline-flex;align-items:center;gap:6px;
+}
+.btn-ghost:hover{border-color:var(--blue);color:var(--blue);background:var(--blue-dim);}
+
+/* SECURITY QUESTION VIEW ROWS */
+.sq-row{
+  display:flex;flex-direction:column;gap:4px;
+  padding:12px 14px;background:var(--bg);border:1px solid var(--border);
+  border-radius:var(--r);margin-bottom:10px;
+}
+.sq-row:last-child{margin-bottom:0;}
+.sq-num{font-size:0.67rem;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:var(--ink4);}
+.sq-question{font-size:0.85rem;font-weight:600;color:var(--ink);}
+.sq-answer-hint{font-size:0.75rem;color:var(--ink4);font-style:italic;}
+
+/* TOAST */
+.toast{
+  position:fixed;bottom:24px;right:24px;z-index:9999;display:none;
+  background:var(--white);border:1px solid var(--border);
+  border-radius:var(--r-lg);padding:12px 18px;
+  box-shadow:0 8px 24px rgba(0,0,0,0.1);
+  font-size:0.83rem;font-weight:600;color:var(--success);
+  border-left:3px solid var(--success);
+  animation:slideUp .3s ease;
+}
+.toast.error{color:var(--danger);border-left-color:var(--danger);}
+@keyframes slideUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+@media(max-width:700px){aside{display:none;}main{padding:20px 16px;}}
+</style>
+</head>
+<body>
+<div class="layout">
+
+  <!-- SIDEBAR -->
+  <aside>
+    <a href="/dashboard" class="brand">
+      <div class="brand-icon">🔐</div>
+      <div class="brand-name">Rev<span>Password</span><br>Manager</div>
+    </a>
+    <div class="nav-section">
+      <div class="nav-label">Main</div>
+      <a href="/dashboard" class="nav-item"><span class="ni">📊</span> Dashboard</a>
+      <a href="/vault"     class="nav-item"><span class="ni">🔐</span> Vault</a>
+      <a href="/generator" class="nav-item"><span class="ni">⚡</span> Generator</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-label">Account</div>
+      <a href="/profile"         class="nav-item active"><span class="ni">👤</span> Profile</a>
+      <a href="/security-report" class="nav-item"><span class="ni">🛡️</span> Security</a>
+      <a href="/backup"          class="nav-item"><span class="ni">💾</span> Backup</a>
+    </div>
+    <div class="nav-bottom">
+      <button class="logout-btn" onclick="logout()"><span class="ni">🚪</span> Sign out</button>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main>
+    <div class="topbar">
+      <h1>Account Profile</h1>
+      <p>Manage your account settings and security</p>
+    </div>
+
+    <div class="profile-grid">
+
+      <!-- AVATAR CARD -->
+      <div class="avatar-card">
+        <div class="avatar-ring" id="avatarInitial">?</div>
+        <div class="avatar-name" id="avatarName">Loading...</div>
+        <div class="avatar-email" id="avatarEmail">—</div>
+        <hr class="avatar-divider"/>
+        <div class="info-row">
+          <span class="info-label">2FA Status</span>
+          <span class="info-val" id="tfa-chip">—</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Phone</span>
+          <span class="info-val" id="phone-chip">—</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Member since</span>
+          <span class="info-val" id="joined-chip">—</span>
+        </div>
+      </div>
+
+      <!-- RIGHT COLUMN -->
+      <div class="right-col">
+
+        <!-- ACCOUNT INFO -->
+        <div class="section-card card-blue">
+          <div class="section-hd">
+            <div class="section-icon">👤</div>
+            <h2>Account Information</h2>
+          </div>
+          <div class="alert error" id="profileError"></div>
+          <div class="alert success" id="profileSuccess"></div>
+          <div class="form-row">
+            <div class="field">
+              <label>Username <span class="req">*</span></label>
+              <div class="input-wrap">
+                <span class="input-ico">@</span>
+                <input id="username" type="text" placeholder="username"/>
+              </div>
+              <div class="err-msg" id="err-username"></div>
+            </div>
+            <div class="field">
+              <label>Phone <span class="opt">(optional)</span></label>
+              <div class="input-wrap">
+                <span class="input-ico">📱</span>
+                <input id="phone" type="tel" placeholder="10-digit number" maxlength="10"/>
+              </div>
+              <div class="err-msg" id="err-phone"></div>
+            </div>
+          </div>
+          <div class="form-row full" style="margin-bottom:18px;">
+            <div class="field">
+              <label>Email Address <span class="req">*</span></label>
+              <div class="input-wrap">
+                <span class="input-ico">✉️</span>
+                <input id="email" type="email" placeholder="you@example.com"/>
+              </div>
+              <div class="err-msg" id="err-email"></div>
+            </div>
+          </div>
+          <button class="btn-primary btn-full" id="profileBtn" onclick="updateProfile()">Save Changes</button>
+        </div>
+
+        <!-- 2FA -->
+        <div class="section-card card-purple">
+          <div class="section-hd">
+            <div class="section-icon">🔐</div>
+            <h2>Two-Factor Authentication</h2>
+          </div>
+          <div class="twofa-row">
+            <div class="twofa-info">
+              <strong>Email OTP Verification</strong>
+              <span>A one-time code is sent to your email on every login</span>
+            </div>
+            <div class="twofa-badge off" id="twofaBadge">
+              <div class="status-dot"></div>
+              <span id="tfaText">Disabled</span>
+            </div>
+          </div>
+          <button class="btn-amber btn-full" id="twoFaBtn" onclick="toggle2FA()">Toggle 2FA</button>
+        </div>
+
+        <!-- SECURITY QUESTIONS -->
+        <div class="section-card card-green" style="--green:#059669;--green-dim:rgba(5,150,105,0.08);border-top-color:#059669;animation-delay:.2s;">
+          <div class="section-hd">
+            <div class="section-icon" style="background:rgba(5,150,105,0.08);">🛡️</div>
+            <div style="flex:1">
+              <h2>Security Questions</h2>
+            </div>
+            <button class="btn-ghost" id="sqEditBtn" onclick="toggleSQEdit()">✏️ Edit Answers</button>
+          </div>
+
+          <div class="alert error"   id="sqError"></div>
+          <div class="alert success" id="sqSuccess"></div>
+
+          <!-- READ-ONLY VIEW -->
+          <div id="sqViewMode">
+            <p style="font-size:0.8rem;color:var(--ink3);margin-bottom:14px;">Your security questions are used to recover your account if you forget your master password. Answers are hidden for security.</p>
+            <div id="sqList">
+              <div style="color:var(--ink4);font-size:0.83rem;">Loading...</div>
+            </div>
+          </div>
+
+          <!-- EDIT MODE -->
+          <div id="sqEditMode" style="display:none;">
+            <p style="font-size:0.8rem;color:var(--ink3);margin-bottom:16px;">Update your answers below. Leave a field blank to keep the existing answer unchanged.</p>
+            <div id="sqEditFields"></div>
+            <div style="display:flex;gap:10px;margin-top:16px;">
+              <button class="btn-primary" id="sqSaveBtn" onclick="saveSecurityAnswers()" style="background:linear-gradient(135deg,#059669,#10b981);box-shadow:0 2px 10px rgba(5,150,105,0.2);">Save Answers</button>
+              <button class="btn-ghost" onclick="toggleSQEdit()">Cancel</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- CHANGE PASSWORD -->
+        <div class="section-card card-amber">
+          <div class="section-hd">
+            <div class="section-icon">🔑</div>
+            <h2>Change Master Password</h2>
+          </div>
+          <div class="alert error"   id="pwdError"></div>
+          <div class="alert success" id="pwdSuccess"></div>
+
+          <div class="form-row full" style="margin-bottom:12px;">
+            <div class="field">
+              <label>Current Password <span class="req">*</span></label>
+              <div class="input-wrap">
+                <span class="input-ico">🔒</span>
+                <input id="currentPassword" type="password" placeholder="Your current master password" style="padding-right:40px;"/>
+                <button class="eye-btn" type="button" onclick="toggleEye('currentPassword',this)">👁</button>
+              </div>
+              <div class="err-msg" id="err-currentPwd"></div>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="field">
+              <label>New Password <span class="req">*</span></label>
+              <div class="input-wrap">
+                <span class="input-ico">🔑</span>
+                <input id="newPassword" type="password" placeholder="Min 8 characters" style="padding-right:40px;"/>
+                <button class="eye-btn" type="button" onclick="toggleEye('newPassword',this)">👁</button>
+              </div>
+              <div class="strength-wrap" id="strengthWrap">
+                <div class="strength-track"><div class="strength-fill" id="strengthFill"></div></div>
+                <div class="strength-label" id="strengthLabel"></div>
+              </div>
+              <div class="err-msg" id="err-newPwd"></div>
+            </div>
+            <div class="field">
+              <label>Confirm New Password <span class="req">*</span></label>
+              <div class="input-wrap">
+                <span class="input-ico">✅</span>
+                <input id="confirmPassword" type="password" placeholder="Re-enter new password" style="padding-right:40px;"/>
+                <button class="eye-btn" type="button" onclick="toggleEye('confirmPassword',this)">👁</button>
+              </div>
+              <div class="err-msg" id="err-confirmPwd"></div>
+            </div>
+          </div>
+
+          <button class="btn-amber btn-full" id="pwdBtn" onclick="changePassword()" style="margin-top:8px;">Change Password</button>
+        </div>
+
+      </div><!-- /right-col -->
+    </div><!-- /profile-grid -->
+  </main>
+</div>
+
+<!-- MASTER PASSWORD MODAL -->
+<div class="modal-overlay" id="masterPwdModal">
+  <div class="modal-box">
+    <div class="modal-title">🔒 Verify Master Password</div>
+    <p class="modal-sub">Enter your master password to edit security questions.</p>
+    <div class="field" style="margin-bottom:10px;">
+      <label>Master Password <span class="req">*</span></label>
+      <div class="input-wrap" id="mpInputWrap">
+        <span class="input-ico">🔑</span>
+        <input id="mpInput" type="password" placeholder="Enter your master password"
+          style="padding-right:40px;" onkeydown="if(event.key==='Enter')verifyMasterPwd()"/>
+        <button class="eye-btn" type="button" onclick="toggleEye('mpInput',this)">👁</button>
+      </div>
+    </div>
+    <div class="modal-err" id="mpError"></div>
+    <div style="display:flex;gap:10px;margin-top:16px;">
+      <button class="btn-primary" onclick="verifyMasterPwd()"
+        style="background:linear-gradient(135deg,#059669,#10b981);box-shadow:0 2px 10px rgba(5,150,105,0.2);">
+        🔓 Verify &amp; Continue
+      </button>
+      <button class="btn-ghost" onclick="closeMasterPwdModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const userId=localStorage.getItem("userId");
+if(!userId){window.location.href="/login";}
+
+// Load profile
+fetch("/api/user/"+userId)
+.then(r=>r.json())
+.then(user=>{
+  document.getElementById("username").value=user.username||"";
+  document.getElementById("email").value=user.email||"";
+  document.getElementById("phone").value=user.phoneNumber||"";
+
+  const name=user.username||"U";
+  document.getElementById("avatarInitial").textContent=name.charAt(0).toUpperCase();
+  document.getElementById("avatarName").textContent=name;
+  document.getElementById("avatarEmail").textContent=user.email||"—";
+  document.getElementById("phone-chip").textContent=user.phoneNumber||"Not set";
+
+  const tfa=user.twoFactorEnabled;
+  updateTfaUI(tfa);
+
+  if(user.createdAt){
+    document.getElementById("joined-chip").textContent=
+      new Date(user.createdAt).toLocaleDateString("en-US",{month:"short",year:"numeric"});
+  }
+});
+
+function updateTfaUI(tfa){
+  const chip=document.getElementById("tfa-chip");
+  chip.textContent=tfa?"Enabled":"Disabled";
+  chip.className="info-val "+(tfa?"on":"off");
+
+  const badge=document.getElementById("twofaBadge");
+  badge.className="twofa-badge "+(tfa?"on":"off");
+  document.getElementById("tfaText").textContent=tfa?"Enabled":"Disabled";
+}
+
+function toggleEye(id,btn){
+  const f=document.getElementById(id);
+  if(f.type==="password"){f.type="text";btn.textContent="🙈";}
+  else{f.type="password";btn.textContent="👁";}
+}
+
+document.getElementById("newPassword").addEventListener("input",function(){
+  const v=this.value;
+  const wrap=document.getElementById("strengthWrap"),
+    fill=document.getElementById("strengthFill"),
+    lbl=document.getElementById("strengthLabel");
+  if(!v){wrap.style.display="none";return;}
+  wrap.style.display="block";
+  let s=0;
+  if(v.length>=8)s++;if(v.length>=12)s++;
+  if(/[A-Z]/.test(v))s++;if(/[a-z]/.test(v))s++;
+  if(/[0-9]/.test(v))s++;if(/[!@#$%^&*]/.test(v))s++;
+  const lvls=[
+    {w:"16%",bg:"#dc2626",t:"Very Weak",c:"#dc2626"},
+    {w:"32%",bg:"#f97316",t:"Weak",c:"#f97316"},
+    {w:"52%",bg:"#d97706",t:"Fair",c:"#d97706"},
+    {w:"68%",bg:"#d97706",t:"Medium",c:"#d97706"},
+    {w:"84%",bg:"#2563eb",t:"Strong",c:"#2563eb"},
+    {w:"100%",bg:"#059669",t:"Very Strong",c:"#059669"}
+  ][Math.min(s,5)];
+  fill.style.width=lvls.w;fill.style.background=lvls.bg;
+  lbl.textContent="Strength: "+lvls.t;lbl.style.color=lvls.c;
+});
+
+function showErr(id,msg){const e=document.getElementById(id);e.textContent=msg;e.style.display="block";}
+function clearErr(id){const e=document.getElementById(id);e.style.display="none";e.textContent="";}
+function showAlert(id,msg,type){const e=document.getElementById(id);e.textContent=msg;e.className="alert "+type;e.style.display="block";}
+function hideAlert(id){document.getElementById(id).style.display="none";}
+
+function updateProfile(){
+  ["err-username","err-email","err-phone"].forEach(clearErr);
+  hideAlert("profileError");hideAlert("profileSuccess");
+  const username=document.getElementById("username").value.trim();
+  const email=document.getElementById("email").value.trim();
+  const phone=document.getElementById("phone").value.trim();
+  let ok=true;
+  if(!username||username.length<3){showErr("err-username","At least 3 characters required");ok=false;}
+  if(!email||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){showErr("err-email","Valid email required");ok=false;}
+  if(phone&&!/^[0-9]{10}$/.test(phone)){showErr("err-phone","Must be exactly 10 digits");ok=false;}
+  if(!ok)return;
+  const btn=document.getElementById("profileBtn");
+  btn.disabled=true;btn.innerHTML='<div class="spinner"></div> Saving...';
+  fetch("/api/user/"+userId,{method:"PUT",headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({username,email,phoneNumber:phone})})
+  .then(r=>r.text())
+  .then(()=>{
+    showAlert("profileSuccess","✅ Profile updated successfully!","success");
+    document.getElementById("avatarName").textContent=username;
+    document.getElementById("avatarEmail").textContent=email;
+    document.getElementById("avatarInitial").textContent=username.charAt(0).toUpperCase();
+    document.getElementById("phone-chip").textContent=phone||"Not set";
+  })
+  .catch(()=>showAlert("profileError","❌ Failed to update profile","error"))
+  .finally(()=>{btn.disabled=false;btn.innerHTML="Save Changes";});
+}
+
+function toggle2FA(){
+  const btn=document.getElementById("twoFaBtn");
+  btn.disabled=true;btn.innerHTML='<div class="spinner"></div> Updating...';
+  fetch("/api/user/toggle-2fa/"+userId,{method:"PUT"})
+  .then(r=>r.text())
+  .then(msg=>{
+    showToast(msg||"2FA updated!");
+    fetch("/api/user/"+userId).then(r=>r.json()).then(user=>updateTfaUI(user.twoFactorEnabled));
+  })
+  .catch(()=>showToast("❌ Failed to toggle 2FA","error"))
+  .finally(()=>{btn.disabled=false;btn.innerHTML="Toggle 2FA";});
+}
+
+function changePassword(){
+  ["err-currentPwd","err-newPwd","err-confirmPwd"].forEach(clearErr);
+  hideAlert("pwdError");hideAlert("pwdSuccess");
+  const username=document.getElementById("username").value.trim();
+  const cur=document.getElementById("currentPassword").value;
+  const nw=document.getElementById("newPassword").value;
+  const conf=document.getElementById("confirmPassword").value;
+  let ok=true;
+  if(!cur){showErr("err-currentPwd","Current password required");ok=false;}
+  if(!nw||nw.length<8){showErr("err-newPwd","At least 8 characters required");ok=false;}
+  if(!conf){showErr("err-confirmPwd","Please confirm your new password");ok=false;}
+  else if(nw!==conf){showErr("err-confirmPwd","Passwords do not match");ok=false;}
+  if(cur&&nw&&cur===nw){showErr("err-newPwd","New password must differ from current");ok=false;}
+  if(!ok)return;
+  const btn=document.getElementById("pwdBtn");
+  btn.disabled=true;btn.innerHTML='<div class="spinner"></div> Changing...';
+  fetch("/api/auth/change-password?username="+username+
+    "&currentPassword="+encodeURIComponent(cur)+
+    "&newPassword="+encodeURIComponent(nw),{method:"PUT"})
+  .then(r=>{if(!r.ok)return r.text().then(t=>{throw new Error(t);});return r.text();})
+  .then(()=>{
+    showAlert("pwdSuccess","✅ Master password changed successfully!","success");
+    ["currentPassword","newPassword","confirmPassword"].forEach(id=>document.getElementById(id).value="");
+    document.getElementById("strengthWrap").style.display="none";
+  })
+  .catch(err=>showAlert("pwdError","❌ "+(err.message||"Incorrect current password"),"error"))
+  .finally(()=>{btn.disabled=false;btn.innerHTML="Change Password";});
+}
+
+let toastTimer;
+function showToast(msg,type=""){
+  const t=document.getElementById("toast");
+  t.textContent=msg;t.className="toast"+(type?" "+type:"");t.style.display="block";
+  clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.style.display="none",3000);
+}
+
+// ── SECURITY QUESTIONS ──
+let sqData = []; // [{id, question}, ...]
+
+function loadSecurityQuestions() {
+  fetch("/api/security/questions-full/" + userId)
+  .then(r => r.json())
+  .then(data => {
+    sqData = data || [];
+    const list = document.getElementById("sqList");
+    if (!sqData.length) {
+      list.innerHTML = '<div style="color:var(--ink4);font-size:0.83rem;text-align:center;padding:12px;">No security questions set up yet.</div>';
+      return;
+    }
+    list.innerHTML = sqData.map((q, i) => `
+      <div class="sq-row">
+        <span class="sq-num">Question ${i + 1}</span>
+        <span class="sq-question">${q.question}</span>
+        <span class="sq-answer-hint">Answer is hidden for security</span>
+      </div>
+    `).join("");
+  })
+  .catch(() => {
+    document.getElementById("sqList").innerHTML = '<div style="color:var(--danger);font-size:0.83rem;">Failed to load security questions.</div>';
+  });
+}
+function toggleSQEdit() {
+	  const editMode = document.getElementById("sqEditMode");
+	  const isEditing = editMode.style.display !== "none";
+	  if (isEditing) { closeSQEdit(); return; }
+	  openMasterPwdModal();
+	}
+
+	function openMasterPwdModal() {
+	  document.getElementById("mpInput").value = "";
+	  document.getElementById("mpError").style.display = "none";
+	  document.getElementById("mpInputWrap").classList.remove("shake");
+	  document.getElementById("masterPwdModal").classList.add("active");
+	  setTimeout(() => document.getElementById("mpInput").focus(), 100);
+	}
+
+	function closeMasterPwdModal() {
+	  document.getElementById("masterPwdModal").classList.remove("active");
+	  document.getElementById("mpInput").value = "";
+	  document.getElementById("mpError").style.display = "none";
+	}
+
+	function verifyMasterPwd() {
+	  const pwd = document.getElementById("mpInput").value;
+	  if (!pwd) {
+	    document.getElementById("mpError").textContent = "⚠️ Please enter your master password.";
+	    document.getElementById("mpError").style.display = "block";
+	    return;
+	  }
+	  const username = document.getElementById("username").value.trim();
+	  fetch("/api/security/verify-master-password?username=" + encodeURIComponent(username) +
+	        "&password=" + encodeURIComponent(pwd), { method: "POST" })
+	  .then(r => {
+	    if (r.ok) {
+	      closeMasterPwdModal();
+	      openSQEdit();
+	    } else {
+	      const wrap = document.getElementById("mpInputWrap");
+	      document.getElementById("mpError").textContent = "⚠️ Incorrect master password. Please try again.";
+	      document.getElementById("mpError").style.display = "block";
+	      wrap.classList.remove("shake");
+	      void wrap.offsetWidth;
+	      wrap.classList.add("shake");
+	      setTimeout(() => wrap.classList.remove("shake"), 500);
+	    }
+	  })
+	  .catch(() => {
+	    document.getElementById("mpError").textContent = "⚠️ Verification failed. Please try again.";
+	    document.getElementById("mpError").style.display = "block";
+	  });
+	}
+
+	function openSQEdit() {
+	  const viewMode = document.getElementById("sqViewMode");
+	  const editMode = document.getElementById("sqEditMode");
+	  const btn = document.getElementById("sqEditBtn");
+	  hideAlert("sqError"); hideAlert("sqSuccess");
+	  const fields = document.getElementById("sqEditFields");
+	  fields.innerHTML = sqData.map((q, i) => `
+	    <div class="field" style="margin-bottom:14px;">
+	      <label>Q${i+1}: ${q.question}</label>
+	      <div class="input-wrap">
+	        <span class="input-ico">🔑</span>
+	        <input id="sq-ans-${q.id}" type="password"
+	          placeholder="Leave blank to keep existing answer"
+	          style="padding-right:40px;"/>
+	        <button class="eye-btn" type="button"
+	          onclick="toggleEye('sq-ans-${q.id}',this)">👁</button>
+	      </div>
+	      <div class="err-msg" id="sq-err-${q.id}"></div>
+	    </div>
+	  `).join("");
+	  viewMode.style.display = "none";
+	  editMode.style.display = "block";
+	  btn.textContent = "✕ Cancel";
+	}
+
+	function closeSQEdit() {
+	  hideAlert("sqError"); hideAlert("sqSuccess");
+	  document.getElementById("sqEditMode").style.display = "none";
+	  document.getElementById("sqViewMode").style.display = "block";
+	  document.getElementById("sqEditBtn").textContent = "✏️ Edit Answers";
+	}
+
+function saveSecurityAnswers() {
+  hideAlert("sqError"); hideAlert("sqSuccess");
+  const btn = document.getElementById("sqSaveBtn");
+
+  // Collect only non-blank answers
+  const updates = sqData
+    .map(q => ({ id: q.id, answer: (document.getElementById("sq-ans-"+q.id)||{}).value||"" }))
+    .filter(u => u.answer.trim() !== "");
+
+  if (!updates.length) {
+    showAlert("sqError", "⚠️ Please enter at least one answer to update.", "error");
+    return;
+  }
+
+  btn.disabled = true;
+  btn.innerHTML = '<div class="spinner"></div> Saving...';
+
+  // Send each update in sequence
+  Promise.all(updates.map(u =>
+    fetch("/api/security/question/" + u.id, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ answer: u.answer.trim() })
+    }).then(r => { if (!r.ok) return r.text().then(t => { throw new Error(t); }); })
+  ))
+  .then(() => {
+    showAlert("sqSuccess", "✅ Security answers updated successfully!", "success");
+    // Reset fields
+    sqData.forEach(q => {
+      const f = document.getElementById("sq-ans-"+q.id);
+      if (f) f.value = "";
+    });
+    // Switch back to view mode after a moment
+    setTimeout(() => { toggleSQEdit(); hideAlert("sqSuccess"); }, 2000);
+  })
+  .catch(err => showAlert("sqError", "❌ " + (err.message || "Failed to update answers"), "error"))
+  .finally(() => { btn.disabled = false; btn.innerHTML = "Save Answers"; });
+}
+
+loadSecurityQuestions();
+
+function logout(){localStorage.clear();window.location.href="/login";}
+</script>
+</body>
+</html>
