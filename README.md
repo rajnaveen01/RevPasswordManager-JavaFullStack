@@ -127,10 +127,15 @@ Open your browser and navigate to: http://localhost:9092
 
 ## 📸 Usage Workflow
 
-1. Register: Create an account with a secure Master Password and set up 3 mandatory security questions.
-2. Login & 2FA: Authenticate with your credentials. If 2FA is enabled in your profile, check your email for the 6-digit OTP code to access the dashboard.
-3. Dashboard Analytics: View your graphical security audit and total password counts.
-4. Manage Vault: Add new credentials, assign them to categories, and test their strength.
-5. Secure Reveal: Attempt to view a saved password—you will be prompted to re-enter your Master Password to decrypt it.
-6. Backup Data: Navigate to the Backup tab to export your entire vault as a secure .enc file. Test the recovery process by importing it!
+1. **Account Creation & Security Setup:** Start by registering a new account. You will create a highly secure Master Password and set up three mandatory security questions required for future account recovery.
+2. **Authentication & 2FA:** Log in using your credentials. If you have Two-Factor Authentication enabled in your profile, the system will intercept the login and email you a secure, time-sensitive 6-digit OTP to verify your identity.
+3. **Account Recovery (Forgot Password):** If you forget your Master Password, use the recovery flow. By successfully answering your three pre-configured security questions, you can securely reset your Master Password without losing your vault data.
+4. **Dashboard Analytics:** Upon logging in, view your personalized security dashboard. It features dynamic Chart.js visualizations breaking down your password health (Total, Weak, Medium, Strong, and Favorites).
+5. **Generating Strong Passwords:** Navigate to the Generator tool when creating a new online account. Customize the length and character types (uppercase, numbers, symbols) to generate a cryptographically secure password, complete with a real-time strength indicator.
+6. **Populating the Vault:** Add new credentials to your vault. Store the account name, URL, username, and the encrypted password, and assign it to a specific Category (e.g., Banking, Social Media) for easy organization.
+7. **Organizing & Filtering:** Use the vault's high-speed rendering engine to instantly search for specific accounts, filter by Category, or sort your credentials alphabetically, by date added, or by recently modified. You can also "Star" frequently used accounts to add them to your Favorites.
+8. **Secure Data Access (Zero-Knowledge):** All passwords in the vault are hidden by default. To view or copy a password to your clipboard, click the "Reveal" icon and successfully re-enter your Master Password to decrypt the entry on the fly.
+9. **Security Audit:** Run a comprehensive health check on your vault by visiting the Security Report tab. The system will scan your encrypted data and alert you to vulnerabilities like weak or heavily reused passwords.
+10. **Profile & Security Settings:** Visit your Profile to update your contact information, change your Master Password, or toggle Two-Factor Authentication on or off.
+11. **Disaster Recovery (Backup/Restore):** Navigate to the Backup tab to export your entire vault. The system packages your data into a single, heavily AES-encrypted `.enc` file. You can safely store this file offline and upload it later to instantly restore your vault.
 
