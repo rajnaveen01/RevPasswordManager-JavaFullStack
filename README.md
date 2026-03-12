@@ -100,44 +100,37 @@ Markdown
    ```bash
    git clone https://github.com/rajnaveen01/RevPasswordManager-JavaFullStack.git
    cd RevPasswordManager-JavaFullStack
-   
-2. Configure the Database & Email (application.properties):
-Open src/main/resources/application.properties and update your credentials:
+   ```   
+2. **Configure the Database & Email (application.properties):**
+   * Open src/main/resources/application.properties and update your credentials:
+   ### Database Configuration
+   `spring.datasource.url=jdbc:mysql://localhost:3306/finalrev
+   spring.datasource.username=root
+   spring.datasource.password=YOUR_MYSQL_PASSWORD`
+   ### Email Configuration (For 2FA)
+   `spring.mail.username=YOUR_EMAIL@gmail.com
+   spring.mail.password=YOUR_GOOGLE_APP_PASSWORD`
 
-# Database Configuration
-spring.datasource.url=jdbc:mysql://localhost:3306/finalrev
-spring.datasource.username=root
-spring.datasource.password=YOUR_MYSQL_PASSWORD
+   (Note: You must create the finalrev schema in MySQL before running)
 
-# Email Configuration (For 2FA)
-spring.mail.username=YOUR_EMAIL@gmail.com
-spring.mail.password=YOUR_GOOGLE_APP_PASSWORD
-
-(Note: You must create the finalrev schema in MySQL before running)
-
-3. Build the Project:
+4. Build the Project:
    ```bash
    mvn clean install
 
-4. Run the Application:
+5. Run the Application:
 Run RevPasswordmanagerApplication.java from your IDE, or use the terminal:
    ```bash
    mvn spring-boot:run
 
-5. Access the Web App:
+6. Access the Web App:
 Open your browser and navigate to: http://localhost:9092
 
-📸 Usage Workflow
-Register: Create an account with a secure Master Password and set up 3 mandatory security questions.
+## 📸 Usage Workflow
 
-Login & 2FA: Authenticate with your credentials. If 2FA is enabled in your profile, check your email for the 6-digit OTP code to access the dashboard.
+1. Register: Create an account with a secure Master Password and set up 3 mandatory security questions.
+2. Login & 2FA: Authenticate with your credentials. If 2FA is enabled in your profile, check your email for the 6-digit OTP code to access the dashboard.
+3. Dashboard Analytics: View your graphical security audit and total password counts.
+4. Manage Vault: Add new credentials, assign them to categories, and test their strength.
+5. Secure Reveal: Attempt to view a saved password—you will be prompted to re-enter your Master Password to decrypt it.
+6. Backup Data: Navigate to the Backup tab to export your entire vault as a secure .enc file. Test the recovery process by importing it!
 
-Dashboard Analytics: View your graphical security audit and total password counts.
-
-Manage Vault: Add new credentials, assign them to categories, and test their strength.
-
-Secure Reveal: Attempt to view a saved password—you will be prompted to re-enter your Master Password to decrypt it.
-
-Backup Data: Navigate to the Backup tab to export your entire vault as a secure .enc file. Test the recovery process by importing it!
-
-Developed by Naveenraj | Powered by Spring Boot 3
